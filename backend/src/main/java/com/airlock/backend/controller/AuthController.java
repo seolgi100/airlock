@@ -1,7 +1,10 @@
-package com.airlock.backend.auth.controller;
+package com.airlock.backend.controller;
 
-import com.airlock.backend.auth.dto.*;
-import com.airlock.backend.auth.service.AuthService;
+import com.airlock.backend.service.AuthService;
+import com.airlock.backend.dto.auth.ChallengeResponse;
+import com.airlock.backend.dto.auth.LoginRequest;
+import com.airlock.backend.dto.auth.TokenResponse;
+import com.airlock.backend.dto.auth.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;

@@ -1,4 +1,4 @@
-package com.airlock.backend.auth.service;
+package com.airlock.backend.service;
 
 import org.springframework.stereotype.Service;
 

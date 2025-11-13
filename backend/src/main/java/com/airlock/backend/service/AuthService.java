@@ -1,9 +1,9 @@
-package com.airlock.backend.auth.service;
+package com.airlock.backend.service;
 
-import com.airlock.backend.auth.dto.ChallengeResponse;
-import com.airlock.backend.auth.dto.LoginRequest;
-import com.airlock.backend.auth.dto.TokenResponse;
-import com.airlock.backend.auth.dto.UserResponse;
+import com.airlock.backend.dto.auth.ChallengeResponse;
+import com.airlock.backend.dto.auth.LoginRequest;
+import com.airlock.backend.dto.auth.TokenResponse;
+import com.airlock.backend.dto.auth.UserResponse;
 import com.airlock.backend.domain.entity.User;
 import com.airlock.backend.domain.repository.UserRepository;
 import org.springframework.stereotype.Service;

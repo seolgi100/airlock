@@ -1,4 +1,4 @@
-package com.airlock.backend.auth.dto;
+package com.airlock.backend.dto.auth;
 
 import lombok.*;
 
