@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class SignalingMessage {
-    private String type;        //offer, answer, candidate
+    private String type;        //join, offer, answer, candidate
     private String from;        //보내는 사람 userId
     private String to;          //받는 사람 userId
 

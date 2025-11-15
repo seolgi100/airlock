@@ -8,6 +8,7 @@ import com.airlock.backend.dto.auth.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +46,7 @@ public class AuthController {
                 example = "Bearer dev-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
         }
     )
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserResponse> me(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
         System.out.println("[DEBUG] Raw Authorization: " + authorization);
         String token = extractBearer(authorization);
