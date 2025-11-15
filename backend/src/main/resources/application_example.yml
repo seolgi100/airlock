@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: backend
+
+webrtc:
+  turn:
+    ip: "TURN_SERVER_IP"
+    username: "TURN_USERNAME"
+    password: "TURN_PASSWORD"!
+    port: "TURN_PORT"

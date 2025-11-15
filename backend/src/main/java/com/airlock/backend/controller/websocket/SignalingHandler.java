@@ -4,11 +4,13 @@ import com.airlock.backend.dto.signal.SignalingMessage;
 import com.airlock.backend.service.SignalingService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-//Controller
+@Component @Slf4j
 public class SignalingHandler extends TextWebSocketHandler {
 
     private final SignalingService signalingService;
@@ -27,6 +29,7 @@ public class SignalingHandler extends TextWebSocketHandler {
 
         //message(JSON 문자열)를 getPayload()로 꺼냄
         String payload = message.getPayload();
+        log.info("Received text message from signalingHandler: {}", payload);
 
         //readValue()에서 발생하는 예외를 처리하기 위해 try-catch 사용
         try {
@@ -35,11 +38,19 @@ public class SignalingHandler extends TextWebSocketHandler {
             SignalingMessage signalingMessage = objectMapper.readValue(payload, SignalingMessage.class);
 
             signalingService.handleMessage(session, signalingMessage);
+
         } catch (JsonProcessingException e) {
-
-            //JSON 구조가 잘못됐거나 파싱 실패했을 때, 에러 로그 출력
-            e.printStackTrace();
+            log.error("Failed to parse signaling message", payload, e);
         }
+    }
 
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) {
+        log.info("WebSocket connected: {}", session.getId());
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status) {
+        log.info("WebSocket closed: {} ({})", session.getId(), status);
     }
 }
