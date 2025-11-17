@@ -1,4 +1,4 @@
-package com.airlock.backend.controller.websocket;
+package com.airlock.backend.controller;
 
 import com.airlock.backend.dto.signal.SignalingMessage;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +33,7 @@ public class SignalingDocController {
                          "from": "userA"
                        }
                        - SignalingService.handleJoin() 에서 sessions.put(from, session) 으로
-                         userId(username) -> WebSocketSession 을 매핑합니다.
+                         username -> WebSocketSession 을 매핑합니다.
                     
                     2) 통화/채팅을 시작하려는 쪽에서 offer 메시지 전송
                        {

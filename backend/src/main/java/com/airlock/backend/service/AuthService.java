@@ -102,16 +102,23 @@ public class AuthService {
         //단계별 처리
         if ("REGISTER_VERIFY".equalsIgnoreCase(req.getStep())) {
             //회원가입 단계
-            //등록 검증: 유저 upsert
-            user = userRepository.findByUsername(req.getUsername())
-                    .orElseGet(() -> {
-                        User u = new User(); //JPA 기본 생성자 필요
-                        u.setUsername(req.getUsername());   //displayName 없으면 username으로 기본값
-                        String dn = (req.getDisplayName() == null || req.getDisplayName().isBlank())
-                                ? req.getUsername() : req.getDisplayName();
-                        u.setDisplayName(dn);
-                        return userRepository.save(u);
-                    });
+
+            //username 중복 체크
+            if (userRepository.existsByUsername(req.getUsername())) {
+                throw new IllegalArgumentException("USERNAME_ALREADY_EXISTS");
+            }
+
+            //새 유저 생성
+            User u = new User();
+            u.setUsername(req.getUsername());
+
+            String dn = (req.getDisplayName() == null || req.getDisplayName().isBlank())
+                    ? req.getUsername()
+                    : req.getDisplayName();
+            u.setDisplayName(dn);
+
+            user = userRepository.save(u);
+
             //(선택) credentialId 등은 실제 구현에서 별도 테이블에 저장
             // String credentialId = req.getCredentialId();
         } else if ("AUTH_VERIFY".equalsIgnoreCase(req.getStep())) {
@@ -159,5 +166,20 @@ public class AuthService {
         if (bearerToken != null && !bearerToken.isBlank()) {
             tokenService.revoke(bearerToken);
         }
+    }
+
+    // ===================== 데모용 =====================
+    @Transactional
+    public TokenResponse demoLogin(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseGet(() -> {
+                    User u = new User(username, username);
+                    u.setActive(true);
+                    return userRepository.save(u);
+                });
+
+        String token = tokenService.issueToken(user.getId());
+
+        return new TokenResponse(token);
     }
 }

@@ -1,6 +1,6 @@
 package com.airlock.backend.config;
 
-import com.airlock.backend.controller.websocket.SignalingHandler;
+import com.airlock.backend.controller.SignalingHandler;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

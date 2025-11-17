@@ -1,4 +1,4 @@
-package com.airlock.backend.controller.websocket;
+package com.airlock.backend.controller;
 
 import com.airlock.backend.dto.signal.SignalingMessage;
 import com.airlock.backend.service.SignalingService;

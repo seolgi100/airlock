@@ -1,10 +1,7 @@
 package com.airlock.backend.controller;
 
+import com.airlock.backend.dto.auth.*;
 import com.airlock.backend.service.AuthService;
-import com.airlock.backend.dto.auth.ChallengeResponse;
-import com.airlock.backend.dto.auth.LoginRequest;
-import com.airlock.backend.dto.auth.TokenResponse;
-import com.airlock.backend.dto.auth.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -69,5 +66,11 @@ public class AuthController {
         if (authorization == null) return null;
         String prefix = "Bearer ";
         return authorization.startsWith(prefix) ? authorization.substring(prefix.length()) : authorization;
+    }
+
+    // ===================== 데모용 =====================
+    @PostMapping("/demo-login")
+    public TokenResponse demoLogin(@RequestBody DemoLoginRequest req) {
+        return authService.demoLogin(req.getUsername());
     }
 }

@@ -37,6 +37,9 @@ public class SignalingService {
             case "candidate":
                 handleCandidate(message);
                 break;
+            case "chat":
+                handleChat(message);
+                break;
             default:
                 //unknown type 처리
                 break;
@@ -46,7 +49,10 @@ public class SignalingService {
     //sessions에 등록
     private void handleJoin(WebSocketSession session, SignalingMessage message) {
         //userId -> session
+        System.out.println("[handleJoin] from=" + message.getFrom());
         sessions.put(message.getFrom(), session);
+        System.out.println("[handleJoin] sessions keys = " + sessions.keySet());
+
     }
 
     private void handleOffer(SignalingMessage message) {
@@ -59,6 +65,29 @@ public class SignalingService {
 
     private void handleCandidate(SignalingMessage message) {
         forwardToTarget(message);
+    }
+
+    //WebSocket을 통한 메시지 중계
+    //추후 WebRTC DataChannel로 채팅을 전환하게 되면 이 로직은 제거 예정
+    private void handleChat(SignalingMessage message) {
+        System.out.println("[handleChat] from=" + message.getFrom() +
+                " to=" + message.getTo() +
+                " msg=" + message.getMessage());
+
+        WebSocketSession target = sessions.get(message.getTo());
+        System.out.println("[handleChat] target session = " + target);
+
+        if (target == null || !target.isOpen()) {
+            System.out.println("[handleChat] target is null or closed");
+            return;
+        }
+
+        try {
+            String json = objectMapper.writeValueAsString(message);
+            target.sendMessage(new TextMessage(json));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void forwardToTarget(SignalingMessage message) {
