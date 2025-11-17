@@ -1,34 +1,50 @@
-// components/chat/ChatInput.jsx
-// 역할: 입력만 담당. axios 제거.
-//       부모(ChatContainer)에게 sendMessage(text) 호출만 함.
-
 import React, { useState } from "react";
 
-function ChatInput({ sendMessage }) {
+function ChatInput({ userId, targetUserId, sendSignal }) {
   const [text, setText] = useState("");
 
-  // 메시지 전송 함수
-  const submit = () => {
-    if (text.trim() === "") return;
+  const sendMessage = () => {
+    if (!text.trim()) return;
 
-    sendMessage(text);  // 부모에게 text 전달
-    setText("");        // 입력창 비우기
+    // 입력된 텍스트 → signaling type으로 사용
+    const type = text.trim();
+
+    const signalPayload = {
+      type: type,       // offer / answer / candidate / join
+      from: userId,
+      to: targetUserId,
+      text: text        // UI 표시용 (실제 signaling에는 쓰지 않아도 됨)
+    };
+
+    // candidate 추가 파라미터는 테스트 시 필요할 수 있어 그대로 둠
+    if (type === "offer" || type === "answer") {
+      signalPayload.sdp = "<dummy_sdp>";
+    }
+
+    if (type === "candidate") {
+      signalPayload.candidate = "<dummy_candidate>";
+      signalPayload.sdpMid = "0";
+      signalPayload.sdpMLineIndex = 0;
+    }
+
+    sendSignal(signalPayload);
+    setText("");
   };
 
   return (
     <div className="border-t flex items-center p-3 bg-white">
       <input
         type="text"
-        placeholder="메시지를 입력하세요"
+        placeholder="join / offer / answer / candidate 입력"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && submit()}
-        className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring focus:ring-[#DDE2B2]"
+        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        className="flex-1 border rounded-full px-4 py-2"
       />
 
       <button
-        onClick={submit}
-        className="ml-2 bg-[#DDE2B2] hover:bg-[#cdd59b] px-4 py-2 rounded-full font-semibold"
+        onClick={sendMessage}
+        className="ml-2 bg-[#DDE2B2] px-4 py-2 rounded-full"
       >
         전송
       </button>
