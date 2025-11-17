@@ -46,6 +46,7 @@ public class AuthController {
                 example = "Bearer dev-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
         }
     )
+
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserResponse> me(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
         System.out.println("[DEBUG] Raw Authorization: " + authorization);
