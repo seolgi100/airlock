@@ -31,5 +31,3 @@ function App() {
 }
 
 export default App;
-
-console.log("frontend deploy test");
