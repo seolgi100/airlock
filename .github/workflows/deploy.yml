@@ -15,12 +15,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
 
       # 1) 프론트엔드 변경 감지
       - name: Detect frontend changes
         id: front_changed
         run: |
-          DIFF=$(git diff --name-only HEAD~1 HEAD || echo "")
+          DIFF=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only)
+
           if echo "$DIFF" | grep "^frontend/"; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
@@ -31,7 +34,8 @@ jobs:
       - name: Detect backend changes
         id: back_changed
         run: |
-          DIFF=$(git diff --name-only HEAD~1 HEAD || echo "")
+          DIFF=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only)
+
           if echo "$DIFF" | grep "^backend/"; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
