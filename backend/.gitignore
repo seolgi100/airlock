@@ -26,9 +26,12 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
-src/main/resources/application.yml
-!src/main/resources/application_example.yml
-!src/main/resources/application-prod_example.yml
+# Ignore local-only yaml
+src/main/resources/application-local.yml
+
+# Allow these
+!src/main/resources/application.yml
+!src/main/resources/application-prod.yml
 
 ### NetBeans ###
 /nbproject/private/
