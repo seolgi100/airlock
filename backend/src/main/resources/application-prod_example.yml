@@ -3,9 +3,9 @@ spring:
     name: backend
 
   datasource:
-    url: jdbc:mariadb://<RDS-ENDPOINT>:3306/<DB_NAME>?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-    username: <DB_USERNAME>
-    password: <DB_PASSWORD>
+    url: "jdbc:mariadb://gamejigi-mariadb.cr686kqo4jsh.ap-northeast-2.rds.amazonaws.com:3306/airlock?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul"
+    username: "admin"
+    password: "your-db-password"
     driver-class-name: org.mariadb.jdbc.Driver
 
   jpa:
@@ -15,7 +15,7 @@ spring:
 
 webrtc:
   turn:
-    ip: "TURN_SERVER_IP"
-    username: "TURN_USERNAME"
-    password: "TURN_PASSWORD"
+    ip: "15.165.2.31"
+    username: "demo"
+    password: "your-turn-password"
     port: 3478
