@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import ModalWrapper from "./ModalWrapper";
 
-export default function RegisterModal({ onClose, onSwitchToLogin }) {
+export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
   // useState 훅을 사용해 에러 메시지 상태 관리
   const [error, setError] = useState("");
 
@@ -13,8 +13,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
     e.preventDefault(); // 기본 새로고침 방지
 
     // 입력값 가져오기
-    const name = e.target.name.value;
-    const email = e.target.email.value;
+    const username = e.target.username.value;
     const password = e.target.password.value;
     const confirm = e.target.confirm.value;
 
@@ -26,7 +25,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
 
     // 통과 시 에러 초기화
     setError("");
-    alert(`회원가입 성공!\n이름: ${name}\n이메일: ${email}`); // 임시 알림 (백엔드 연결 전 테스트용)
+    alert(`회원가입 성공!\n사용자 이름: ${username}`); // 임시 알림 (백엔드 연결 전 테스트용)
     onClose(); // 모달 닫기
   };
 
@@ -35,21 +34,17 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
     <ModalWrapper title="회원가입" onClose={onClose}>
       {/* 회원가입 입력 폼 */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {/* 이름 입력 */}
+        {/* 사용자 이름 입력 */}
         <input
           type="text"
-          name="name"
-          placeholder="이름 입력"
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400"
-          required
-        />
-
-        {/* 이메일 입력 */}
-        <input
-          type="email"
-          name="email"
-          placeholder="이메일 입력"
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400"
+          name="username"
+          placeholder="사용자 이름 입력"
+          className="
+            border border-gray-300 
+            rounded-lg px-4 py-2 
+            focus:ring-2 focus:ring-[#DDE2B2] focus:border-[#DDE2B2]
+            transition
+          "
           required
         />
 
@@ -58,7 +53,12 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
           type="password"
           name="password"
           placeholder="비밀번호 입력"
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400"
+          className="
+            border border-gray-300 
+            rounded-lg px-4 py-2 
+            focus:ring-2 focus:ring-[#DDE2B2] focus:border-[#DDE2B2]
+            transition
+          "
           required
         />
 
@@ -67,7 +67,12 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
           type="password"
           name="confirm"
           placeholder="비밀번호 확인"
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-400"
+          className="
+            border border-gray-300 
+            rounded-lg px-4 py-2 
+            focus:ring-2 focus:ring-[#DDE2B2] focus:border-[#DDE2B2]
+            transition
+          "
           required
         />
 
@@ -78,10 +83,17 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
           </p>
         )}
 
-        {/* 회원가입 버튼 */}
+        {/* 회원가입 버튼: 로그인 모달과 동일 톤 */}
         <button
           type="submit"
-          className="bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition"
+          className="
+            bg-[#F2F0E5] 
+            text-gray-800 
+            py-2 rounded-lg 
+            border border-gray-300
+            hover:bg-[#DDE2B2] 
+            transition
+          "
         >
           회원가입
         </button>
@@ -92,7 +104,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin }) {
         이미 계정이 있으신가요?{" "}
         <button
           onClick={onSwitchToLogin} // 로그인 모달로 전환
-          className="text-green-600 hover:underline"
+          className="text-[#5a6146] hover:underline"
         >
           로그인
         </button>

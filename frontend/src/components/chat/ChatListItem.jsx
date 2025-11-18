@@ -1,4 +1,3 @@
-// components/chat/ChatListItem.jsx
 import React from "react";
 
 function ChatListItem({ room, onSelect }) {

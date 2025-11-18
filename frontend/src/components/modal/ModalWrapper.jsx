@@ -17,19 +17,32 @@ export default function ModalWrapper({ title, children, onClose }) {
     >
       {/* 모달 본체 */}
       <div
-        className="bg-white rounded-2xl shadow-xl w-96 p-6 relative"
+        className="
+          relative w-96 p-6 rounded-2xl shadow-xl
+          bg-[#F2F0E5]          /* 채팅 UI 톤과 맞춘 메인 배경 */
+          border border-gray-300
+        "
         onClick={(e) => e.stopPropagation()} // 내부 클릭 시 닫히지 않도록 이벤트 전파 차단
       >
         {/* 닫기 버튼 */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl"
+          className="
+            absolute top-3 right-3 text-gray-600 
+            hover:text-gray-900 
+            hover:bg-[#DDE2B2]        /* 채팅 UI 포커스 색 */
+            w-8 h-8 flex items-center justify-center 
+            rounded-full transition
+            text-xl
+          "
         >
           ✕
         </button>
 
         {/* 제목 영역 */}
-        <h2 className="text-2xl font-bold text-center mb-6">{title}</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+          {title}
+        </h2>
 
         {/* 자식 컴포넌트(LoginModal 또는 RegisterModal 내용) */}
         {children}
