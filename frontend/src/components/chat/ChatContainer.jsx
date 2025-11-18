@@ -2,7 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import ChatHeader from "./ChatHeader";
 import ChatRoom from "./ChatRoom";
 import ChatInput from "./ChatInput";
-
+ const WS_URL =
+  window.location.hostname === "localhost"
+    ? "ws://localhost:8080/ws"
+    : `ws://${window.location.hostname}:8080/ws`;
+    
+    
 function ChatContainer({ roomId, serverHello }) {
   const userId = "me";
   const targetUserId = "other";
@@ -10,11 +15,7 @@ function ChatContainer({ roomId, serverHello }) {
   const [messages, setMessages] = useState([]);
   const wsRef = useRef(null);
 
- const WS_URL =
-  window.location.hostname === "localhost"
-    ? "ws://localhost:8080/ws"
-    : `ws://${window.location.hostname}:8080/ws`;
-    
+
   useEffect(() => {
     wsRef.current = new WebSocket(WS_URL);
 
