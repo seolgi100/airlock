@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: backend
+
+  datasource:
+    url: jdbc:mariadb://<RDS-ENDPOINT>:3306/<DB_NAME>?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: <DB_USERNAME>
+    password: <DB_PASSWORD>
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+webrtc:
+  turn:
+    ip: "TURN_SERVER_IP"
+    username: "TURN_USERNAME"
+    password: "TURN_PASSWORD"
+    port: 3478
