@@ -26,12 +26,6 @@
         </encoder>
     </appender>
 
-        <!-- 테스트용 로거 -->
-    <logger name="com.airlock.test" level="DEBUG" additivity="false">
-        <appender-ref ref="Console"/>
-        <appender-ref ref="RollingFile"/>
-    </logger>
-
     <!-- Spring Boot 기본 로그 설정 -->
     <root level="INFO">
         <appender-ref ref="Console"/>
