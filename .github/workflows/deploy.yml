@@ -2,112 +2,120 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [ "main" ]  # main 브랜치에 push 시 실행
+    branches: [ "main" ]
+    paths:
+      - "frontend/**"
+      - "backend/**"
+  workflow_dispatch:   # 수동 배포 가능
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    env:
-      FRONT_KEY: '[front]'
-      BACK_KEY: '[back]'
-
     steps:
-      # ✅ 1️⃣ 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # ✅ 2️⃣ 프론트엔드 빌드
-      - name: Build frontend
-        if: contains(github.event.head_commit.message, env.FRONT_KEY)
+      # 1) 프론트엔드 변경 감지
+      - name: Detect frontend changes
+        id: front_changed
         run: |
-          echo "🧱 Building frontend..."
+          if git diff --name-only HEAD^ HEAD | grep "^frontend/"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 2) 백엔드 변경 감지
+      - name: Detect backend changes
+        id: back_changed
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep "^backend/"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 3) 프론트 빌드
+      - name: Build frontend
+        if: steps.front_changed.outputs.changed == 'true'
+        run: |
+          echo "🔧 Building frontend..."
           cd frontend
           npm install
           npm run build
           tar -czf build.tar.gz build
           mv build.tar.gz $GITHUB_WORKSPACE/build.tar.gz
-          echo "✅ Frontend build complete!"
+          echo "🎉 Frontend build done!"
 
-      # ✅ 3️⃣ 자바 세팅 (백엔드 빌드용)
-      - name: Setup Java for backend
-        if: contains(github.event.head_commit.message, env.BACK_KEY)
+      # 4) 백엔드 빌드
+      - name: Setup Java
+        if: steps.back_changed.outputs.changed == 'true'
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # ✅ 4️⃣ 백엔드 빌드
       - name: Build backend
-        if: contains(github.event.head_commit.message, env.BACK_KEY)
+        if: steps.back_changed.outputs.changed == 'true'
         run: |
-          echo "⚙️ Building backend..."
+          echo "⚙ Backend building..."
           cd backend
           chmod +x gradlew
           ./gradlew clean build -x test
-          echo "📦 Build output 확인:"
-          ls -al build/libs
           cp build/libs/*SNAPSHOT.jar ../app.jar
-          echo "✅ Backend build complete!"
+          echo "🎉 Backend build done!"
 
-      # ✅ 5️⃣ EC2로 프론트엔드 빌드 파일 전송
+      # 5) 파일 업로드 (프론트/백)
+
       - name: Upload frontend build to EC2
-        if: contains(github.event.head_commit.message, env.FRONT_KEY)
+        if: steps.front_changed.outputs.changed == 'true'
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
           source: "build.tar.gz"
           target: "/home/ubuntu"
 
-      # ✅ 6️⃣ EC2로 백엔드 JAR 파일 전송
       - name: Upload backend jar to EC2
-        if: contains(github.event.head_commit.message, env.BACK_KEY)
+        if: steps.back_changed.outputs.changed == 'true'
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
           source: "app.jar"
           target: "/home/ubuntu"
 
-      # ✅ 7️⃣ EC2 내부에서 배포 명령 실행
-      - name: Run deployment commands on EC2
+      # 6) 서버 배포 실행
+      - name: Deploy on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "🚀 Starting deployment process on EC2..."
+            echo "🚀 Starting deploy..."
 
-            # 🧱 프론트엔드 배포
-            if [[ "${{ github.event.head_commit.message }}" == *"[front]"* ]]; then
-              echo "🧩 Frontend update detected."
-              if [ -f "/home/ubuntu/build.tar.gz" ]; then
-                sudo rm -rf /var/www/html/*
-                sudo tar -xzf /home/ubuntu/build.tar.gz -C /var/www/html --strip-components=1
-                sudo chown -R www-data:www-data /var/www/html
-                sudo chmod -R 755 /var/www/html
-                sudo systemctl restart nginx
-                echo "✅ Frontend updated successfully!"
-              else
-                echo "⚠️ build.tar.gz not found, skipping frontend deploy."
-              fi
+            # ==== 프론트 배포 ====
+            if [[ "${{ steps.front_changed.outputs.changed }}" == "true" ]]; then
+              echo "🧩 Deploying FRONTEND..."
+              sudo rm -rf /var/www/html/*
+              sudo tar -xzf /home/ubuntu/build.tar.gz -C /var/www/html --strip-components=1
+              sudo chown -R www-data:www-data /var/www/html
+              sudo chmod -R 755 /var/www/html
+              sudo systemctl restart nginx
+              echo "✨ Frontend deployed!"
             fi
 
-            # ⚙️ 백엔드 배포
-            if [[ "${{ github.event.head_commit.message }}" == *"[back]"* ]]; then
-              echo "🧩 Backend update detected."
-              if [ -f "/home/ubuntu/app.jar" ]; then
-                sudo systemctl stop spring || true
-                sudo mv /home/ubuntu/app.jar /home/ubuntu/backend/app.jar
-                sudo systemctl start spring
-                echo "✅ Backend restarted successfully!"
-              else
-                echo "⚠️ app.jar not found, skipping backend deploy."
-              fi
+            # ==== 백엔드 배포 ====
+            if [[ "${{ steps.back_changed.outputs.changed }}" == "true" ]]; then
+              echo "🧩 Deploying BACKEND..."
+              sudo systemctl stop spring || true
+              sudo mv /home/ubuntu/app.jar /home/ubuntu/backend/app.jar
+              sudo systemctl start spring
+              echo "✨ Backend deployed!"
             fi
+
+            echo "🎉 All tasks done!"
