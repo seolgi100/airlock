@@ -20,7 +20,8 @@ jobs:
       - name: Detect frontend changes
         id: front_changed
         run: |
-          if git diff --name-only HEAD^ HEAD | grep "^frontend/"; then
+          DIFF=$(git diff --name-only HEAD~1 HEAD || echo "")
+          if echo "$DIFF" | grep "^frontend/"; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
@@ -30,7 +31,8 @@ jobs:
       - name: Detect backend changes
         id: back_changed
         run: |
-          if git diff --name-only HEAD^ HEAD | grep "^backend/"; then
+          DIFF=$(git diff --name-only HEAD~1 HEAD || echo "")
+          if echo "$DIFF" | grep "^backend/"; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
