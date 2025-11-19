@@ -1,27 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ChatContainer from "./components/chat/ChatContainer";
 import ChatList from "./components/chat/ChatList";
-import api from "./api";
 
 // 모달들
 import LoginModal from "./components/modal/LoginModal";
 import RegisterModal from "./components/modal/RegisterModal";
 
 function App() {
-  const [hello, setHello] = useState("");
   const [selectedRoom, setSelectedRoom] = useState(null);
 
   // 로그인 / 회원가입 모달 상태
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-
-  // /hello 테스트용
-  useEffect(() => {
-    api
-      .get("/hello")
-      .then((res) => setHello(res.data))
-      .catch(() => setHello("서버 연결 실패"));
-  }, []);
 
   return (
     <div className="min-h-[100svh] bg-gray-100">
@@ -51,13 +41,16 @@ function App() {
       {!selectedRoom && (
         <ChatList
           onSelectRoom={(roomId) => setSelectedRoom(roomId)}
-          onOpenLogin={() => setShowLogin(true)} // 헤더의 "로그인" 버튼
+          onOpenLogin={() => setShowLogin(true)}
         />
       )}
 
       {/* 채팅방 입장 화면 */}
       {selectedRoom && (
-        <ChatContainer roomId={selectedRoom} serverHello={hello} />
+        <ChatContainer
+          roomId={selectedRoom}
+          onBack={() => setSelectedRoom(null)}
+        />
       )}
     </div>
   );

@@ -1,40 +1,42 @@
-import React, { useState } from "react";
+// src/components/chat/ChatInput.jsx
+import { useState } from "react";
 
 function ChatInput({ userId, targetUserId, sendSignal }) {
   const [text, setText] = useState("");
 
-  const handleSend = () => {
-    if (!text.trim()) return;
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const trimmed = text.trim();
+    if (!trimmed) return;
 
-    const payload = {
-      type: text,           // 사용자 입력 = 시그널링 타입
-      from: userId,
+    sendSignal({
+      type: "chat",
       to: targetUserId,
-      text: text,           // 메시지 내용도 표시
-    };
+      text: trimmed,
+    });
 
-    sendSignal(payload);
     setText("");
   };
 
   return (
-    <div className="border-t flex items-center p-3 bg-white">
+    <form
+      onSubmit={handleSubmit}
+      className="flex items-center gap-2 px-4 py-3 bg-white"
+    >
       <input
         type="text"
-        placeholder="메세지를 입력해 주세요."
         value={text}
         onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        className="flex-1 border rounded-full px-4 py-2"
+        placeholder="메시지를 입력해 주세요."
+        className="flex-1 border rounded-full px-4 py-2 text-sm outline-none"
       />
-
       <button
-        onClick={handleSend}
-        className="ml-2 bg-[#DDE2B2] px-4 py-2 rounded-full"
+        type="submit"
+        className="px-4 py-2 text-sm font-medium rounded-full bg-[#F2F0E5] border border-gray-300"
       >
         전송
       </button>
-    </div>
+    </form>
   );
 }
 
