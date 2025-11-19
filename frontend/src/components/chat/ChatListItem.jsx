@@ -10,13 +10,16 @@ function ChatListItem({ room, onSelect }) {
         <div className="font-semibold text-gray-800">
           채팅방 #{room.roomId}
         </div>
+
         <div className="text-sm text-gray-500">
-          {room.userId1} ↔ {room.userId2}
+          유저 {room.userId1} ↔ 유저 {room.userId2}
         </div>
       </div>
 
       <div className="text-xs text-gray-400">
-        {new Date(room.createdAt).toLocaleString()}
+        {room.createdAt
+          ? new Date(room.createdAt).toLocaleString()
+          : ""}
       </div>
     </div>
   );
