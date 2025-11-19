@@ -63,11 +63,12 @@ function ChatList({ onSelectRoom, onOpenLogin }) {
         )}
         {rooms.map((room) => (
           <ChatListItem
-            key={room.id}
+            key={room.roomId}     
             room={room}
-            onClick={() => onSelectRoom(room.id)}
+            onClick={() => onSelectRoom(room.roomId)}  
           />
         ))}
+
       </div>
     </div>
   );
