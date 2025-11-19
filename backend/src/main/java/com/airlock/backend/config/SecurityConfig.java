@@ -39,6 +39,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:8080",
+                "http://15.165.2.31",
                 "http://15.165.2.31:3000",
                 "http://15.165.2.31:8080"
         ));
