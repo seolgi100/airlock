@@ -38,6 +38,7 @@ public class SecurityConfig {
         // 허용할 프론트엔드 주소
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
+                "http://localhost:8080",
                 "http://127.0.0.1:3000",
                 "http://localhost:5173",
                 "http://127.0.0.1:5173"
