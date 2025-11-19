@@ -29,4 +29,6 @@ public class RoomController {
     public List<RoomResponse> getRoomsByUser(@RequestParam Long userId) {
         return roomService.getRoomsForUser(userId);
     }
+
+
 }

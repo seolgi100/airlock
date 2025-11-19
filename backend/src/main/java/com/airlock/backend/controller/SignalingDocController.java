@@ -23,7 +23,7 @@ public class SignalingDocController {
                     WebRTC 1:1 채팅을 위한 시그널링 WebSocket 사용 안내입니다.
                     
                     ■ WebSocket 엔드포인트 예시
-                    - ws://<서버도메인 or IP>/ws/signaling
+                    - ws://<서버도메인 or IP>/ws
                     
                     ■ 전체 흐름
                     

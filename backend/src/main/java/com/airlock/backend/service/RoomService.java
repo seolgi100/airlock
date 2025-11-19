@@ -53,6 +53,7 @@ public class RoomService {
     }
 
     //방 ID로 조회
+    @Transactional(readOnly = true)
     public RoomResponse getRoom(Long roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("ROOM_NOT_FOUND"));
