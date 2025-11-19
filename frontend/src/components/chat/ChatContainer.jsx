@@ -6,8 +6,8 @@ import ChatInput from "./ChatInput";
 
 const WS_URL =
   window.location.hostname === "localhost"
-    ? "ws://localhost:8080/ws/signaling"
-    : "ws://15.165.2.31:8080/ws/signaling";
+    ? "ws://localhost:8080/ws"
+    : "ws://15.165.2.31:8080/ws";
     
 function ChatContainer({ roomId, onBack }) {
   // test1 / test2 유저 id (DB id 기준)
