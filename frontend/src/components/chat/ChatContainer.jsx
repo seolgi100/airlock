@@ -7,8 +7,8 @@ import ChatInput from "./ChatInput";
 const WS_URL =
   window.location.hostname === "localhost"
     ? "ws://localhost:8080/ws/signaling"
-    : `ws://${window.location.hostname}/ws/signaling`;
-
+    : "ws://15.165.2.31:8080/ws/signaling";
+    
 function ChatContainer({ roomId, onBack }) {
   // test1 / test2 유저 id (DB id 기준)
   // 브라우저 1에서 1, 브라우저 2에서 2로만 바꿔서 테스트
