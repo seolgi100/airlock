@@ -30,14 +30,14 @@ function ChatContainer({ roomId, onBack }) {
       // 스웨거 스펙에 맞춘 join 메시지
       const joinMsg = {
         type: "join",
-        from: userId,        // Long
+        from: userId,
         to: null,
         sdp: null,
         candidate: null,
         sdpMid: null,
         sdpMLineIndex: null,
-        roomId: roomId,      // 백엔드에서 쓰면 사용, 아니면 무시
       };
+
 
       ws.send(JSON.stringify(joinMsg));
       console.log("WS 전송(join):", joinMsg);
@@ -60,7 +60,7 @@ function ChatContainer({ roomId, onBack }) {
           ...prev,
           {
             id: msg.id ?? Date.now() + Math.random(),
-            text: msg.text ?? "",
+            text: msg.message ?? "",
             sender: msg.from === userId ? "me" : "other",
           },
         ]);
@@ -127,7 +127,7 @@ function ChatContainer({ roomId, onBack }) {
         ...prev,
         {
           id: Date.now() + Math.random(),
-          text: finalPayload.text ?? "",
+          text: finalPayload.message ?? "",
           sender: "me",
         },
       ]);
