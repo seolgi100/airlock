@@ -29,13 +29,9 @@ function ChatContainer({ roomId, onBack }) {
 
       // 스웨거 스펙에 맞춘 join 메시지
       const joinMsg = {
-        type: "join", 
-        from: userId,
-        to: null,
-        sdp: null,
-        candidate: null,
-        sdpMid: null,
-        sdpMLineIndex: null,  
+        type: "join",
+        roomId: roomId,
+        userId: userId
       };
 
 
@@ -56,15 +52,14 @@ function ChatContainer({ roomId, onBack }) {
 
       // 텍스트 채팅
       if (msg.type === "chat") {
-        setMessages((prev) => [
+        setMessages(prev => [
           ...prev,
           {
             id: msg.id ?? Date.now() + Math.random(),
-            text: msg.message ?? "",
-            sender: msg.from === userId ? "me" : "other",
-          },
+            text: msg.message,
+            sender: msg.senderId === userId ? "me" : "other",
+          }
         ]);
-        return;
       }
 
       // WebRTC 시그널링 (offer / answer / candidate 등)
@@ -104,35 +99,32 @@ function ChatContainer({ roomId, onBack }) {
     const ws = wsRef.current;
 
     if (!ws || ws.readyState !== WebSocket.OPEN) {
-      console.warn("WS가 아직 열리지 않아서 메시지를 보낼 수 없음");
-      return;
-    }
-
-    if (!payload || typeof payload !== "object") {
-      console.warn("잘못된 payload:", payload);
+      console.warn("WS가 열리지 않음");
       return;
     }
 
     const finalPayload = {
-      from: userId,
-      ...payload,
+      type: payload.type,
+      roomId: roomId,
+      senderId: userId,
+      message: payload.message ?? null,
     };
 
     ws.send(JSON.stringify(finalPayload));
     console.log("WS 전송:", finalPayload);
 
-    // 내가 보낸 채팅은 로컬에 바로 반영
     if (finalPayload.type === "chat") {
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now() + Math.random(),
-          text: finalPayload.message ?? "",
+          text: finalPayload.message,
           sender: "me",
         },
       ]);
     }
   };
+
 
   return (
     <div className="w-full min-h-[100svh] bg-white md:max-w-screen-md md:mx-auto">
