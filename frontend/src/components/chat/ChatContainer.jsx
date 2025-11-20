@@ -29,13 +29,13 @@ function ChatContainer({ roomId, onBack }) {
 
       // 스웨거 스펙에 맞춘 join 메시지
       const joinMsg = {
-        type: "join",
+        type: "join", 
         from: userId,
         to: null,
         sdp: null,
         candidate: null,
         sdpMid: null,
-        sdpMLineIndex: null,
+        sdpMLineIndex: null,  
       };
 
 
