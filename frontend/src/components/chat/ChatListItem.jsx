@@ -12,14 +12,13 @@ function ChatListItem({ room, onSelect }) {
         </div>
 
         <div className="text-sm text-gray-500">
-          유저 {room.userId1} ↔ 유저 {room.userId2}
+          {room.user1?.displayName || room.user1?.username} ↔{" "}
+          {room.user2?.displayName || room.user2?.username}
         </div>
       </div>
 
       <div className="text-xs text-gray-400">
-        {room.createdAt
-          ? new Date(room.createdAt).toLocaleString()
-          : ""}
+        {room.createdAt ? new Date(room.createdAt).toLocaleString() : ""}
       </div>
     </div>
   );
