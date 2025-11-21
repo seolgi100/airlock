@@ -1,3 +1,13 @@
+package com.airlock.backend.controller;
+
+import com.airlock.backend.dto.room.RoomCreateRequest;
+import com.airlock.backend.dto.room.RoomResponse;
+import com.airlock.backend.service.RoomService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor
