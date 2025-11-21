@@ -44,10 +44,6 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    //WebAuthn (Yubico)
-    implementation 'com.yubico:webauthn-server-core:2.6.0'
-    implementation 'com.yubico:webauthn-server-attestation:2.6.0'
-
     //JSON/CBOR
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor'
 
@@ -56,6 +52,11 @@ dependencies {
 
     //Swagger 사용 시 (API 문서)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+    // WebAuthn4J
+    implementation 'com.webauthn4j:webauthn4j-core:0.24.0.RELEASE'
+
+
 }
 
 tasks.named('test') {

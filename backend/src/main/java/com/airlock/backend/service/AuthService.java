@@ -1,24 +1,42 @@
 package com.airlock.backend.service;
 
+import com.airlock.backend.domain.entity.PasskeyCredential;
+import com.airlock.backend.domain.repository.PasskeyCredentialRepository;
 import com.airlock.backend.dto.auth.ChallengeResponse;
 import com.airlock.backend.dto.auth.LoginRequest;
 import com.airlock.backend.dto.auth.TokenResponse;
 import com.airlock.backend.dto.auth.UserResponse;
 import com.airlock.backend.domain.entity.User;
 import com.airlock.backend.domain.repository.UserRepository;
+import com.webauthn4j.WebAuthnManager;
+import com.webauthn4j.data.*;
+import com.webauthn4j.data.client.Origin;
+import com.webauthn4j.data.client.challenge.DefaultChallenge;
+import com.webauthn4j.server.ServerProperty;
+import com.webauthn4j.authenticator.Authenticator;
+import com.webauthn4j.authenticator.AuthenticatorImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
-//import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AuthService {
     private final UserRepository userRepository;
     private final TokenService tokenService;
+    private final PasskeyCredentialRepository passkeyCredentialRepository;
+    private final WebAuthnManager webAuthnManager;
+
+    private static final String RP_ID = "15.165.2.31";
+    private static final String ORIGIN = "http://15.165.2.31:3000";
+
+    //로컬 테스트용
+//    private static final String RP_ID = "localhost";
+//    private static final String ORIGIN = "http://localhost:3000";
 
     //발급 시 저장, 검증 시 일치 확인 후 제거(일회성 저장소) / (username, challenge)
     private final Map<String, String> challengeStore = new ConcurrentHashMap<>();
@@ -26,9 +44,14 @@ public class AuthService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final Base64.Encoder B64URL = Base64.getUrlEncoder().withoutPadding();
 
-    public AuthService(UserRepository userRepository, TokenService tokenService) {
+    public AuthService(UserRepository userRepository,
+                       TokenService tokenService,
+                       PasskeyCredentialRepository passkeyCredentialRepository,
+                       WebAuthnManager webAuthnManager) {
         this.userRepository = userRepository;
         this.tokenService = tokenService;
+        this.passkeyCredentialRepository = passkeyCredentialRepository;
+        this.webAuthnManager = webAuthnManager;
     }
 
     //================= 내부 유틸 =================
@@ -38,6 +61,11 @@ public class AuthService {
         byte[] challenge = new byte[32];
         SECURE_RANDOM.nextBytes(challenge);
         return B64URL.encodeToString(challenge);
+    }
+
+    //Base64URL 디코딩 유틸
+    private static byte[] b64url(String v) {
+        return Base64.getUrlDecoder().decode(v);
     }
 
     //================= 발급 =================
@@ -56,18 +84,35 @@ public class AuthService {
         String challenge = newChallenge();
         challengeStore.put(req.getUsername(), challenge);
 
-        //단계별 처리
-        if ("AUTH_OPTIONS".equalsIgnoreCase(req.getStep())) {
-            //로그인 단계
-            //allowCredentials: 실제 구현 시엔 DB에 저장된 credentialId 목록을 내려줌
-            return new ChallengeResponse(challenge, /*allowCredentials=*/null);
+        String rpId = RP_ID;
+        String origin = ORIGIN;
 
-        } else if ("REGISTER_OPTIONS".equalsIgnoreCase(req.getStep())) {
-            //회원가입 단계
-            return new ChallengeResponse(challenge, /*allowCredentials=*/null);
+        if ("REGISTER_OPTIONS".equalsIgnoreCase(req.getStep())) {
+            //회원가입: allowCredentials 필요 없음
+            return ChallengeResponse.builder()
+                    .challenge(challenge)
+                    .rpId(rpId)
+                    .origin(origin)
+                    .credentialIds(null)
+                    .build();
 
+        } else if ("AUTH_OPTIONS".equalsIgnoreCase(req.getStep())) {
+            //로그인: 유저의 passkey 목록을 allowCredentials로 내려줌
+            User user = userRepository.findByUsername(req.getUsername())
+                    .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+
+            List<String> credentialIds = passkeyCredentialRepository.findByUser(user)
+                    .stream()
+                    .map(PasskeyCredential::getCredentialId)
+                    .toList();
+
+            return ChallengeResponse.builder()
+                    .challenge(challenge)
+                    .rpId(rpId)
+                    .origin(origin)
+                    .credentialIds(credentialIds)
+                    .build();
         } else {
-            //잘못된 단계
             throw new IllegalArgumentException("INVALID_STEP");
         }
     }
@@ -84,54 +129,119 @@ public class AuthService {
         if (req.getStep() == null || req.getStep().isBlank()) {
             throw new IllegalArgumentException("STEP_REQUIRED");
         }
-        if (req.getClientChallenge() == null || req.getClientChallenge().isBlank()) {
-            throw new IllegalArgumentException("CHALLENGE_REQUIRED");
-        }
 
-        //challenge 일치 확인
-        String expected = challengeStore.get(req.getUsername());
-        if (expected == null || !expected.equals(req.getClientChallenge())) {
-            throw new IllegalArgumentException("INVALID_CHALLENGE" + req.getClientChallenge());
-        }
-
-        //사용 후 제거(일회성)
-        challengeStore.remove(req.getUsername());
-
-        User user;
-
-        //단계별 처리
         if ("REGISTER_VERIFY".equalsIgnoreCase(req.getStep())) {
-            //회원가입 단계
+            return handleRegisterVerify(req);
+        } else if ("AUTH_VERIFY".equalsIgnoreCase(req.getStep())) {
+            return handleAuthVerify(req);
+        } else {
+            throw new IllegalArgumentException("INVALID_STEP");
+        }
+    }
 
-            //username 중복 체크
+    private TokenResponse handleRegisterVerify(LoginRequest req) {
+        String expectedChallenge = challengeStore.get(req.getUsername());
+        if (expectedChallenge == null) {
+            throw new IllegalArgumentException("CHALLENGE_NOT_FOUND");
+        }
+
+        try {
+            //WebAuthn4J용 RegistrationRequest 만들기
+            RegistrationRequest registrationRequest = new RegistrationRequest(
+                    b64url(req.getAttestationObject()),   // attestationObject
+                    b64url(req.getClientDataJSON())       // clientDataJSON
+            );
+
+            //ServerProperty 구성 (RP, Origin, Challenge)
+            ServerProperty serverProperty = new ServerProperty(
+                    new Origin(ORIGIN),
+                    RP_ID,
+                    new DefaultChallenge(b64url(expectedChallenge)),
+                    null
+            );
+
+            RegistrationParameters parameters = new RegistrationParameters(
+                    serverProperty,
+                    null,
+                    false
+            );
+
+            //검증
+            RegistrationData registrationData =
+                    webAuthnManager.validate(registrationRequest, parameters);
+
+            challengeStore.remove(req.getUsername());
+
             if (userRepository.existsByUsername(req.getUsername())) {
                 throw new IllegalArgumentException("USERNAME_ALREADY_EXISTS");
             }
-
-            //새 유저 생성
-            User u = new User();
-            u.setUsername(req.getUsername());
-
+            User user = new User();
+            user.setUsername(req.getUsername());
             String dn = (req.getDisplayName() == null || req.getDisplayName().isBlank())
                     ? req.getUsername()
                     : req.getDisplayName();
-            u.setDisplayName(dn);
+            user.setDisplayName(dn);
+            user = userRepository.save(user);
 
-            user = userRepository.save(u);
+            PasskeyCredential cred = new PasskeyCredential();
+            cred.setUser(user);
+            cred.setCredentialId(req.getCredentialId());
 
-            //(선택) credentialId 등은 실제 구현에서 별도 테이블에 저장
-            // String credentialId = req.getCredentialId();
-        } else if ("AUTH_VERIFY".equalsIgnoreCase(req.getStep())) {
-            //로그인 단계
-            //인증 검증: 유저 반드시 존재
-            user = userRepository.findByUsername(req.getUsername())
-                    .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
-        } else {
-            //잘못된 단계
-            throw new IllegalArgumentException("INVALID_STEP");
+            var attestedCredentialData = registrationData.getAttestationObject()
+                    .getAuthenticatorData()
+                    .getAttestedCredentialData();
+
+            cred.setPublicKeyCose(
+                    Base64.getUrlEncoder().withoutPadding()
+                            .encodeToString(
+                                    attestedCredentialData
+                                            .getCOSEKey()
+                                            .getPublicKey()
+                                            .getEncoded()
+                            )
+            );
+            cred.setSignCount(
+                    registrationData.getAttestationObject()
+                            .getAuthenticatorData()
+                            .getSignCount()
+            );
+            passkeyCredentialRepository.save(cred);
+
+            String token = tokenService.issueToken(user.getId());
+            return new TokenResponse(token);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("WEBAUTHN_REGISTER_FAILED: " + e.getMessage());
+        }
+    }
+
+    private TokenResponse handleAuthVerify(LoginRequest req) {
+        String expectedChallenge = challengeStore.get(req.getUsername());
+        if (expectedChallenge == null) {
+            throw new IllegalArgumentException("CHALLENGE_NOT_FOUND");
         }
 
-        //토큰 발급 및 반환
+        //클라이언트가 보내준 clientChallenge랑도 한번 더 비교하고 싶으면
+        if (!expectedChallenge.equals(req.getClientChallenge())) {
+            throw new IllegalArgumentException("INVALID_CHALLENGE");
+        }
+
+        //challenge 사용 후 제거
+        challengeStore.remove(req.getUsername());
+
+        //credentialId 로 DB의 PasskeyCredential 찾기
+        PasskeyCredential cred = passkeyCredentialRepository.findByCredentialId(req.getCredentialId())
+                .orElseThrow(() -> new IllegalArgumentException("CREDENTIAL_NOT_FOUND"));
+
+        User user = cred.getUser();
+
+        // TODO: webAuthnManager.validate(...)로 진짜 서명 검증까지 붙이기
+        //  - AuthenticationData/AuthenticationRequest 만들고
+        //  - ServerProperty
+        //  - CredentialRecord 로드해서 AuthenticationParameters 만들기
+        //  - webAuthnManager.verify(authenticationData, authenticationParameters)
+        //  - signCount 업데이트
+
+        //서버가 준 challenge + credentialId가 DB에 있다 를 기준으로 로그인 성공 처리
         String token = tokenService.issueToken(user.getId());
         return new TokenResponse(token);
     }
