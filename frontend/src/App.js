@@ -59,4 +59,4 @@ function App() {
 export default App;
 
 
-// dummy edit
+// 확인용 더미
