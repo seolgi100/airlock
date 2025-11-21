@@ -1,12 +1,12 @@
-name: Deploy to EC2
+name: Build and Upload to S3
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
       - "frontend/**"
       - "backend/**"
-  workflow_dispatch:   # 수동 배포 가능
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -18,43 +18,37 @@ jobs:
         with:
           fetch-depth: 2
 
-      # 1) 프론트엔드 변경 감지
+      # 프론트 변경 감지
       - name: Detect frontend changes
         id: front_changed
         run: |
           DIFF=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only)
-
           if echo "$DIFF" | grep "^frontend/"; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      # 2) 백엔드 변경 감지
+      # 백엔드 변경 감지
       - name: Detect backend changes
         id: back_changed
         run: |
           DIFF=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only)
-
           if echo "$DIFF" | grep "^backend/"; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      # 3) 프론트 빌드
+      # 프론트 빌드
       - name: Build frontend
         if: steps.front_changed.outputs.changed == 'true'
         run: |
-          echo "🔧 Building frontend..."
           cd frontend
           npm install
           npm run build
-          tar -czf build.tar.gz build
-          mv build.tar.gz $GITHUB_WORKSPACE/build.tar.gz
-          echo "🎉 Frontend build done!"
 
-      # 4) 백엔드 빌드
+      # 백엔드 빌드
       - name: Setup Java
         if: steps.back_changed.outputs.changed == 'true'
         uses: actions/setup-java@v3
@@ -65,63 +59,27 @@ jobs:
       - name: Build backend
         if: steps.back_changed.outputs.changed == 'true'
         run: |
-          echo "⚙ Backend building..."
           cd backend
           chmod +x gradlew
           ./gradlew clean build -x test
-          cp build/libs/*SNAPSHOT.jar ../app.jar
-          echo "🎉 Backend build done!"
 
-      # 5) 파일 업로드 (프론트/백)
+      # AWS 인증
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
 
-      - name: Upload frontend build to EC2
+      # 프론트 S3 업로드
+      - name: Upload frontend to S3
         if: steps.front_changed.outputs.changed == 'true'
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "build.tar.gz"
-          target: "/home/ubuntu"
+        run: |
+          aws s3 sync frontend/build s3://airlock-frontend-build --delete
 
-      - name: Upload backend jar to EC2
+      # 백엔드 S3 업로드
+      - name: Upload backend to S3
         if: steps.back_changed.outputs.changed == 'true'
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "app.jar"
-          target: "/home/ubuntu"
-
-      # 6) 서버 배포 실행
-      - name: Deploy on EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "🚀 Starting deploy..."
-
-            # ==== 프론트 배포 ====
-            if [[ "${{ steps.front_changed.outputs.changed }}" == "true" ]]; then
-              echo "🧩 Deploying FRONTEND..."
-              sudo rm -rf /var/www/html/*
-              sudo tar -xzf /home/ubuntu/build.tar.gz -C /var/www/html --strip-components=1
-              sudo chown -R www-data:www-data /var/www/html
-              sudo chmod -R 755 /var/www/html
-              sudo systemctl restart nginx
-              echo "✨ Frontend deployed!"
-            fi
-
-            # ==== 백엔드 배포 ====
-            if [[ "${{ steps.back_changed.outputs.changed }}" == "true" ]]; then
-              echo "🧩 Deploying BACKEND..."
-              sudo systemctl stop spring || true
-              sudo mv /home/ubuntu/app.jar /home/ubuntu/backend/app.jar
-              sudo systemctl start spring
-              echo "✨ Backend deployed!"
-            fi
-
-            echo "🎉 All tasks done!"
+        run: |
+          JAR_PATH=$(find backend/build/libs -name "*SNAPSHOT.jar" | head -1)
+          aws s3 cp "$JAR_PATH" s3://airlock-backend-jar/app.jar
