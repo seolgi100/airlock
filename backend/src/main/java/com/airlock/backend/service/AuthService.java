@@ -1,5 +1,6 @@
 package com.airlock.backend.service;
 
+import com.airlock.backend.config.PasskeyProperties;
 import com.airlock.backend.domain.entity.PasskeyCredential;
 import com.airlock.backend.domain.repository.PasskeyCredentialRepository;
 import com.airlock.backend.dto.auth.ChallengeResponse;
@@ -37,15 +38,12 @@ public class AuthService {
     private final TokenService tokenService;
     private final PasskeyCredentialRepository passkeyCredentialRepository;
     private final WebAuthnManager webAuthnManager;
+    private final PasskeyProperties passkeyProperties = new PasskeyProperties();
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private static final String RP_ID = "15.165.2.31";
-    private static final String ORIGIN = "http://15.165.2.31:3000";
-
-    //로컬 테스트용
-//    private static final String RP_ID = "localhost";
-//    private static final String ORIGIN = "http://localhost:3000";
+    String RP_ID = passkeyProperties.getRpId();
+    String ORIGIN = passkeyProperties.getOrigin();
 
     //발급 시 저장, 검증 시 일치 확인 후 제거(일회성 저장소) / (username, challenge)
     private final Map<String, String> challengeStore = new ConcurrentHashMap<>();
