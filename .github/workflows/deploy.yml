@@ -73,7 +73,7 @@ jobs:
       # 4) EC2 업로드
       # ============================
 
-      # 프론트
+      # 프론트 — build 전체 폴더 그대로 업로드
       - name: Upload frontend build
         if: steps.front_changed.outputs.changed == 'true'
         uses: appleboy/scp-action@v0.1.7
@@ -81,8 +81,9 @@ jobs:
           host: 43.202.212.164
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "frontend/build/*"
-          target: "/home/ubuntu/frontend-build-temp"
+          source: "frontend/build"
+          target: "/home/ubuntu/frontend-build-temp/"
+          strip_components: 0
 
       - name: Upload frontend .env
         if: steps.front_changed.outputs.changed == 'true'
@@ -92,7 +93,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "frontend/.env"
-          target: "/home/ubuntu/frontend-env-temp"
+          target: "/home/ubuntu/frontend-env-temp/"
 
       # 백엔드 JAR
       - name: Upload backend JAR
@@ -123,7 +124,7 @@ jobs:
               echo "📁 Deploying FRONTEND..."
 
               sudo rm -rf /var/www/html/*
-              sudo cp -r /home/ubuntu/frontend-build-temp/* /var/www/html/
+              sudo cp -r /home/ubuntu/frontend-build-temp/build/* /var/www/html/
 
               if [ -f /home/ubuntu/frontend-env-temp/.env ]; then
                 sudo cp /home/ubuntu/frontend-env-temp/.env /var/www/html/.env
