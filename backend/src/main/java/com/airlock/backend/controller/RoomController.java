@@ -21,6 +21,7 @@ public class RoomController {
     }
 
     //방 조회
+    @GetMapping("/{roomId}")
     public RoomResponse getRoom(@PathVariable Long roomId) {
         return roomService.getRoom(roomId);
     }
