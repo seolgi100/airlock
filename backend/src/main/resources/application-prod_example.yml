@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: backend
+
+  datasource:
+    url: "jdbc:mariadb://<DB 호스트>:3306/<DB 이름>?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul"
+    username: "<DB username>"
+    password: "<DB password>"
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+# WebRTC TURN 서버 설정
+webrtc:
+  turn:
+    ip: "<turn_ip>"
+    username: "<turn_username>"
+    password: "<turn_password>"
+    port: 3478
+
+passkey:
+  rpId: "15.165.2.31"
+  origin: "http://15.165.2.31:3000"
