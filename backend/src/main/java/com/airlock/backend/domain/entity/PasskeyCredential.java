@@ -27,10 +27,8 @@ public class PasskeyCredential {
     private String publicKeyCose;
 
     @Column(nullable = false)
-    private long signCount;
+    private long signCount = 0L;
 
-    @Column(length = 255)
-    private String transports;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();

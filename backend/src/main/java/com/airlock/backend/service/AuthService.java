@@ -13,12 +13,19 @@ import com.webauthn4j.data.*;
 import com.webauthn4j.data.client.Origin;
 import com.webauthn4j.data.client.challenge.DefaultChallenge;
 import com.webauthn4j.server.ServerProperty;
-import com.webauthn4j.authenticator.Authenticator;
-import com.webauthn4j.authenticator.AuthenticatorImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.MessageDigest;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.spec.X509EncodedKeySpec;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +37,8 @@ public class AuthService {
     private final TokenService tokenService;
     private final PasskeyCredentialRepository passkeyCredentialRepository;
     private final WebAuthnManager webAuthnManager;
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final String RP_ID = "15.165.2.31";
     private static final String ORIGIN = "http://15.165.2.31:3000";
@@ -215,35 +224,137 @@ public class AuthService {
     }
 
     private TokenResponse handleAuthVerify(LoginRequest req) {
+        //기본 입력 검증
+        if (req.getCredentialId() == null || req.getCredentialId().isBlank()) {
+            throw new IllegalArgumentException("CREDENTIAL_ID_REQUIRED");
+        }
+        if (req.getClientDataJSON() == null || req.getClientDataJSON().isBlank()) {
+            throw new IllegalArgumentException("CLIENT_DATA_REQUIRED");
+        }
+        if (req.getAuthenticatorData() == null || req.getAuthenticatorData().isBlank()) {
+            throw new IllegalArgumentException("AUTHENTICATOR_DATA_REQUIRED");
+        }
+        if (req.getSignature() == null || req.getSignature().isBlank()) {
+            throw new IllegalArgumentException("SIGNATURE_REQUIRED");
+        }
+
+        //서버가 발급했던 challenge 가져오기
         String expectedChallenge = challengeStore.get(req.getUsername());
         if (expectedChallenge == null) {
             throw new IllegalArgumentException("CHALLENGE_NOT_FOUND");
         }
 
-        //클라이언트가 보내준 clientChallenge랑도 한번 더 비교하고 싶으면
-        if (!expectedChallenge.equals(req.getClientChallenge())) {
-            throw new IllegalArgumentException("INVALID_CHALLENGE");
+        try {
+            //------clientDataJson 파싱------
+            byte[] clientDataBytes = b64url(req.getClientDataJSON());
+            JsonNode clientDate = OBJECT_MAPPER.readTree(clientDataBytes);
+
+            String type = clientDate.get("type").asText();
+            String challengeFromClient = clientDate.get("challenge").asText();
+            String originFromClient = clientDate.get("origin").asText();
+
+            //type 확인
+            if (!"webauthn.get".equals(type)) {
+                throw new IllegalArgumentException("INVALID_CHALLENGE_TYPE");
+            }
+
+            //challenge 확인
+            if (!expectedChallenge.equals(challengeFromClient)) {
+                throw new IllegalArgumentException("INVALID_CHALLENGE");
+            }
+
+            //origin 확인
+            if (!ORIGIN.equals(originFromClient)) {
+                throw new IllegalArgumentException("INVALID_ORIGIN");
+            }
+
+            //------authenticatorData 파싱------
+            byte[] authDataBytes = b64url(req.getAuthenticatorData());
+
+            if (authDataBytes.length < 37) { //rpIdHash(32) + flags(1) + signCount(4)
+                throw new IllegalArgumentException("AUTH_DATA_TOO_SHORT");
+            }
+
+            //rpIdHash 체크
+            byte[] rpIdHash = Arrays.copyOfRange(authDataBytes, 0, 32);
+            byte[] expectedRpIdHash = MessageDigest.getInstance("SHA-256")
+                    .digest(RP_ID.getBytes(StandardCharsets.UTF_8));
+
+            if (!MessageDigest.isEqual(rpIdHash, expectedRpIdHash)) {
+                throw new IllegalArgumentException("RPID_HASH_MISMATCH");
+            }
+
+            //flags
+            byte flags = authDataBytes[32];
+            boolean userPresent = (flags & 0x01) != 0;
+            boolean userVerified = (flags & 0x04) != 0;
+
+            if (!userPresent) {
+                throw new IllegalArgumentException("USER_NOT_PRESENT");
+            }
+
+            if (!userVerified) {
+                throw new IllegalArgumentException("USER_NOT_VERIFIED");
+            }
+
+            long newSignCount =
+                    ((authDataBytes[33] & 0xffL) << 24) |
+                    ((authDataBytes[34] & 0xffL) << 16) |
+                    ((authDataBytes[35] & 0xffL) << 8)  |
+                    (authDataBytes[36] & 0xffL);
+
+            //-----DB에서 credential / user 조회------
+            PasskeyCredential cred = passkeyCredentialRepository.findByCredentialId(req.getCredentialId())
+                    .orElseThrow(() -> new IllegalArgumentException("CREDENTIAL_NOT_FOUND"));
+
+            User user = cred.getUser();
+
+            //-----서명 검증-----
+            byte[] clientDataHash = MessageDigest.getInstance("SHA-256").digest(clientDataBytes);
+
+            byte[] signedBytes = new byte[authDataBytes.length + clientDataHash.length];
+            System.arraycopy(authDataBytes, 0, signedBytes, 0, authDataBytes.length);
+            System.arraycopy(clientDataHash, 0, signedBytes, authDataBytes.length, clientDataHash.length);
+
+            //저장해둔 publicKeyCose는 X.509 인코딩된 공개키를 Base64URL로 저장했다고 가정
+            byte[] publicKeyBytes = Base64.getUrlDecoder().decode(cred.getPublicKeyCose());
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
+
+            //ES256 기준
+            KeyFactory keyFactory = KeyFactory.getInstance("EC");
+            PublicKey publicKey = keyFactory.generatePublic(keySpec);
+
+            byte[] signatureBytes = b64url(req.getSignature());
+
+            Signature sig = Signature.getInstance("SHA256withECDSA");
+            sig.initVerify(publicKey);
+            sig.update(signedBytes);
+
+            if (!sig.verify(signatureBytes)) {
+                throw new IllegalArgumentException("INVALID_SIGNATURE");
+            }
+
+            //-----signCount 롤백 체크 및 업데이트-----
+            Long storedSignCount = cred.getSignCount();
+            if (storedSignCount != null && newSignCount < storedSignCount) {
+                //복제된 인증기 사용 가능성
+                throw new IllegalArgumentException("SIGN_COUNT_ROLLBACK");
+            }
+
+            cred.setSignCount(newSignCount);
+            passkeyCredentialRepository.save(cred);
+
+            //-----challenge 사용 후 제거-----
+            challengeStore.remove(req.getUsername());
+
+            String token = tokenService.issueToken(user.getId());
+            return new TokenResponse(token);
+
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("WEBAUTHN_AUTH_FAILED: " + e.getMessage(), e);
         }
-
-        //challenge 사용 후 제거
-        challengeStore.remove(req.getUsername());
-
-        //credentialId 로 DB의 PasskeyCredential 찾기
-        PasskeyCredential cred = passkeyCredentialRepository.findByCredentialId(req.getCredentialId())
-                .orElseThrow(() -> new IllegalArgumentException("CREDENTIAL_NOT_FOUND"));
-
-        User user = cred.getUser();
-
-        // TODO: webAuthnManager.validate(...)로 진짜 서명 검증까지 붙이기
-        //  - AuthenticationData/AuthenticationRequest 만들고
-        //  - ServerProperty
-        //  - CredentialRecord 로드해서 AuthenticationParameters 만들기
-        //  - webAuthnManager.verify(authenticationData, authenticationParameters)
-        //  - signCount 업데이트
-
-        //서버가 준 challenge + credentialId가 DB에 있다 를 기준으로 로그인 성공 처리
-        String token = tokenService.issueToken(user.getId());
-        return new TokenResponse(token);
     }
 
     // ===================== 현재 사용자 조회 =====================
@@ -276,6 +387,19 @@ public class AuthService {
         if (bearerToken != null && !bearerToken.isBlank()) {
             tokenService.revoke(bearerToken);
         }
+    }
+
+    // ===================== username으로 유저 조회 =====================
+    @Transactional(readOnly = true)
+    public UserResponse meByUsername(String username) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("USERNAME_REQUIRED");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+
+        return new UserResponse(user.getId(), user.getUsername(), user.getDisplayName());
     }
 
     // ===================== 데모용 =====================
