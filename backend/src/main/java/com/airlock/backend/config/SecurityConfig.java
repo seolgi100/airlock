@@ -45,7 +45,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore((request, response, chain) -> {
+                        String path = ((HttpServletRequest) request).getRequestURI();
+                        if (path.startsWith("/api/") || path.startsWith("/ws/")) {
+                                chain.doFilter(request, response); // 필터 통과
+                        } else {
+                                devTokenAuthenticationFilter.doFilter(request, response, chain);
+                        }
+                }, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
