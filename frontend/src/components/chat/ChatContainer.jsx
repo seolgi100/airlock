@@ -7,21 +7,9 @@ import ChatInput from "./ChatInput";
 const WS_URL =
   window.location.hostname === "localhost"
     ? "ws://localhost:8080/ws"
-<<<<<<< HEAD
     : "ws://43.202.212.164:8080/ws";
-=======
-    : "ws://43.202.212.164/ws";
->>>>>>> b85c8270d209d928750eeea0af9f4873d66a1483
 
-function ChatContainer({ roomId, onBack }) {
-  // -----------------------------------------
-  // 1) userId 결정: URL 파라미터 ?userId=1 / ?userId=2 로 테스트
-  //    예) http://localhost:3000/chat?userId=1
-  //        http://localhost:3000/chat?userId=2
-  // -----------------------------------------
-  const searchParams = new URLSearchParams(window.location.search);
-  const userId = searchParams.get("userId") ?? "1"; // 기본값 1
-  const targetUserId = userId === "1" ? "2" : "1";
+function ChatContainer({ roomId, onBack, userId, targetUserId }) {
 
   const [messages, setMessages] = useState([]);
   const wsRef = useRef(null);
