@@ -30,7 +30,7 @@ out/
 src/main/resources/application-local.yml
 
 #실제 환경 설정 파일 절대 git에 올리면 안됨
-backend/src/main/resources/application.yml
+backend/src/main/resources/application*.yml
 backend/src/main/resources/application-prod.yml
 
 # 예시 파일은 그대로 두기
