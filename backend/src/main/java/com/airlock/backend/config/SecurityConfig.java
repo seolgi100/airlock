@@ -1,9 +1,12 @@
 package com.airlock.backend.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -14,19 +17,47 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   DevTokenAuthenticationFilter devTokenAuthenticationFilter)
+            throws Exception {
 
         http
-                //일단 CSRF 끄기 (API/WS 테스트용)
+                //API 서버라 CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 //요청별 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        //WebSocket 엔드포인트는 모두 허용
+                        //패스키 발급/검증, 데모 로그인 등은 토큰 없이 허용
+                        .requestMatchers("/auth/issue", "/auth/verify", "/auth/demo-login").permitAll()
+
+                        //WebSocket 엔드포인트 모두 허용
                         .requestMatchers("/ws/**").permitAll()
-                        //나머지도 일단 전부 허용 (테스트 단계라서)
-                        .anyRequest().permitAll()
-                );
+
+                        //Swagger UI, API 문서 허용
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**"
+                        ).permitAll()
+                        
+                        // API 허용 추가
+                        .requestMatchers("/api/**").permitAll()
+
+                        .requestMatchers("/api/**").permitAll()
+
+                        //그 외 나머지 인증 필요
+                        .anyRequest().authenticated()
+                )
+
+                // .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore((request, response, chain) -> {
+                        String path = ((HttpServletRequest) request).getRequestURI();
+                        if (path.startsWith("/api/") || path.startsWith("/ws/")) {
+                                chain.doFilter(request, response); // 필터 통과
+                        } else {
+                                devTokenAuthenticationFilter.doFilter(request, response, chain);
+                        }
+                }, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -37,11 +68,12 @@ public class SecurityConfig {
 
         // 허용할 프론트엔드 주소
         config.setAllowedOrigins(List.of(
+                "http://localhost",
                 "http://localhost:3000",
                 "http://localhost:8080",
-                "http://127.0.0.1:3000",
-                "http://localhost:5173",
-                "http://127.0.0.1:5173"
+                "http://43.202.212.164",
+                "http://43.202.212.164:3000",
+                "http://43.202.212.164:8080"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

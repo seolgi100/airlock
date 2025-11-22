@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/auth")
@@ -45,11 +46,15 @@ public class AuthController {
     )
 
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<UserResponse> me(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
-        System.out.println("[DEBUG] Raw Authorization: " + authorization);
-        String token = extractBearer(authorization);
-        System.out.println("[DEBUG] Extracted token: " + token);
-        UserResponse res = authService.me(token);
+    public ResponseEntity<UserResponse> me(Authentication authentication) {
+        if (authentication == null || authentication.isAuthenticated()) {
+            //Security 설정이 잘못됐거나 필터가 안 탄 것
+            throw new IllegalStateException("UNAUTHENTICATED");
+        }
+
+        String username = (String) authentication.getPrincipal();
+
+        UserResponse res = authService.meByUsername(username);
         return ResponseEntity.ok(res);
     }
 

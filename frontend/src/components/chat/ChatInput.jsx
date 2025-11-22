@@ -12,7 +12,7 @@ function ChatInput({ userId, targetUserId, sendSignal }) {
     sendSignal({
       type: "chat",
       to: targetUserId,
-      text: trimmed,
+      message: trimmed,
     });
 
     setText("");
