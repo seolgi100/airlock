@@ -37,6 +37,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**"
                         ).permitAll()
+                        
+                        // API 허용 추가
+                        .requestMatchers("/api/**").permitAll()
 
                         //그 외 나머지 인증 필요
                         .anyRequest().authenticated()
@@ -55,9 +58,9 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:8080",
-                "http://15.165.2.31",
-                "http://15.165.2.31:3000",
-                "http://15.165.2.31:8080"
+                "http://43.202.212.164",
+                "http://43.202.212.164:3000",
+                "http://43.202.212.164:8080"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
