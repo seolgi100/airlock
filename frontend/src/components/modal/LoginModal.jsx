@@ -165,10 +165,10 @@ export default function LoginModal({
     <ModalWrapper title="로그인" onClose={onClose}>
       
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        
         {/* 로그인 버튼: 채팅 UI 색과 통일 */}
         <button
           type="submit"
+          disabled={loading}  // ← loading 값 사용
           className="
             bg-[#F2F0E5] 
             text-gray-800 
@@ -176,12 +176,21 @@ export default function LoginModal({
             border border-gray-300
             hover:bg-[#DDE2B2] 
             transition
+            disabled:opacity-60
+            disabled:cursor-not-allowed
           "
         >
-          로그인
+          {loading ? "로그인 중..." : "로그인"}  {/* ← loading 값 사용 */}
         </button>
       </form>
 
+      {/* 에러 메시지 */}
+      {error && (
+        <p className="text-red-500 text-sm font-medium text-center mt-2">
+          {error}
+        </p>
+      )}
+      
       {/* 회원가입 */}
       <div className="text-center mt-4 text-sm">
         계정이 없으신가요?{" "}
