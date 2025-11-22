@@ -7,7 +7,11 @@ import ChatInput from "./ChatInput";
 const WS_URL =
   window.location.hostname === "localhost"
     ? "ws://localhost:8080/ws"
+<<<<<<< HEAD
     : "ws://43.202.212.164:8080/ws";
+=======
+    : "ws://43.202.212.164/ws";
+>>>>>>> b85c8270d209d928750eeea0af9f4873d66a1483
 
 function ChatContainer({ roomId, onBack }) {
   // -----------------------------------------

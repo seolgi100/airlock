@@ -21,4 +21,11 @@ public class LoginRequest {
 
     @Schema(description = "패스키 식별자")
     private String credentialId;
+
+    //WebAuthn
+    private String clientDataJSON;      // Base64URL
+    private String attestationObject;   // 등록 시
+    private String authenticatorData;   // 로그인 시
+    private String signature;           // 로그인 시
+    private String userHandle;          // 선택적
 }

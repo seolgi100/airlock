@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: backend
+
+# WebRTC TURN 서버 설정
+webrtc:
+  turn:
+    ip: "<turn_ip>"
+    username: "<turn_username>"
+    password: "<turn_password>"
+    port: 3478
+
+# WebAuthn / Passkey 설정
+passkey:                              #서버에서 사용할 때
+  rpId: "localhost"                   #43.202.212.164
+  origin: "http://localhost:3000"     #http://43.202.212.164:3000
