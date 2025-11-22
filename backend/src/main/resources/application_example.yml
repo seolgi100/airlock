@@ -12,5 +12,5 @@ webrtc:
 
 # WebAuthn / Passkey 설정
 passkey:                              #서버에서 사용할 때
-  rpId: "localhost"                   #15.165.2.31
-  origin: "http://localhost:3000"     #http://15.165.2.31:3000
+  rpId: "localhost"                   #43.202.212.164
+  origin: "http://localhost:3000"     #http://43.202.212.164:3000

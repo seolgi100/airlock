@@ -25,6 +25,7 @@ public class AuthController {
     @PostMapping("/issue")
     public ResponseEntity<ChallengeResponse> issue(@RequestBody LoginRequest req) {
         ChallengeResponse res = authService.issueChallenge(req);
+        authService.someMethod();
         return ResponseEntity.ok(res);
     }
 

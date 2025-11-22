@@ -42,8 +42,9 @@ public class AuthService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    String RP_ID = passkeyProperties.getRpId();
-    String ORIGIN = passkeyProperties.getOrigin();
+    private static final String RP_ID = "43.202.212.164";
+    private static final String ORIGIN = "http://43.202.212.164:3000";
+
 
     //발급 시 저장, 검증 시 일치 확인 후 제거(일회성 저장소) / (username, challenge)
     private final Map<String, String> challengeStore = new ConcurrentHashMap<>();

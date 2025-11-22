@@ -22,5 +22,5 @@ webrtc:
     port: 3478
 
 passkey:
-  rpId: "15.165.2.31"
-  origin: "http://15.165.2.31:3000"
+  rpId: "43.202.212.164"
+  origin: "http://43.202.212.164:3000"
