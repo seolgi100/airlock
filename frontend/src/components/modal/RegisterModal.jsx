@@ -70,7 +70,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
       const issueBody = {
         username,
         displayName,
-        step: "REGISTER_OPTIONS",
+        step: "REGISTER_OPTIONS", // 백엔드와 협의 후 변경
         clientChallenge: "",
         credentialId: "",
         clientDataJSON: "",
@@ -137,7 +137,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
       const verifyBody = {
         username,
         displayName,
-        step: "REGISTER_VERIFY",   // 예시. 서버에서 실제로 뭘 기대하는지는 팀이랑 맞춰야 함
+        step: "REGISTER_VERIFY",
         clientChallenge: challenge, // 서버가 준 challenge 다시 보냄
 
         credentialId,
@@ -149,9 +149,6 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
         signature: "",
         userHandle: "",
 
-        // 비밀번호 기반 JWT까지 같이 관리하려면,
-        // 여기서 password도 넘기고 서버 DTO에도 추가해야 함.
-        // password,
       };
 
       const verifyRes = await apiClient.post("/auth/verify", verifyBody);

@@ -2,23 +2,32 @@ import { useEffect, useState } from "react";
 import apiClient from "../../api/client";
 import ChatListItem from "./ChatListItem";
 
-function ChatList({ onSelectRoom, onOpenLogin }) {
+function ChatList({ currentUser, onSelectRoom, onOpenLogin }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
-  const userId = 1; // 임시: test1 (나중에 로그인 응답에서 가져오면 됨)
+const userId = currentUser?.id;
 
   useEffect(() => {
     let cancelled = false;
+
+     // userId 없으면(로그인 안 된 상태) API 호출 안 함
+
+    if (!userId) {
+      setRooms([]);
+      setLoading(false);
+      setLoadError(null);
+      return;
+    }
 
     async function fetchRooms() {
       try {
         setLoading(true);
         setLoadError(null);
 
-        const res = await apiClient.get("/rooms", {
-          params: { userId }, // ← Swagger curl에 있는 이름 그대로
+        const res = await apiClient.get("/api/rooms", {
+          params: { userId }, // Swagger curl에 있는 이름 그대로
         });
 
         if (cancelled) return;
@@ -65,7 +74,7 @@ function ChatList({ onSelectRoom, onOpenLogin }) {
           <ChatListItem
             key={room.roomId}
             room={room}
-            onSelect={() => onSelectRoom(room.roomId)}   // ✔ 이게 맞는 코드!
+            onSelect={() => onSelectRoom(room)}
           />
         ))}
 

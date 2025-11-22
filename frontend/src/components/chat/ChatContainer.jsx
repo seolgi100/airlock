@@ -9,13 +9,24 @@ const WS_URL =
     ? "ws://localhost:8080/ws"
     : "ws://43.202.212.164:8080/ws";
 
-function ChatContainer({ roomId, onBack, userId, targetUserId }) {
+function ChatContainer({ room, currentUser, onBack }) {
 
   const [messages, setMessages] = useState([]);
   const wsRef = useRef(null);
 
-  useEffect(() => {
-    console.log("ChatContainer mount. roomId =", roomId, "userId =", userId);
+  const userId = currentUser?.id;
+  const targetUserId =
+    room?.user1?.id === userId ? room?.user2?.id : room?.user1?.id;
+
+useEffect(() => {
+    if (!room || !userId) return;
+
+    console.log(
+      "ChatContainer mount. roomId =",
+      room.roomId,
+      "userId =",
+      userId
+    );
 
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
@@ -91,7 +102,7 @@ function ChatContainer({ roomId, onBack, userId, targetUserId }) {
         wsRef.current = null;
       }
     };
-  }, [roomId, userId]);
+  }, [room, userId]);
 
   // -----------------------------------------
   // 4) 공통 전송 함수 (시그널링 / 채팅 모두)

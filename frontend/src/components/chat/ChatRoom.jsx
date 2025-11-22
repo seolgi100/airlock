@@ -8,8 +8,6 @@ function ChatRoom({ messages = [] }) {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
       {safeMessages.length === 0 ? (
-        // 메시지 없을 때는 그냥 빈 화면 주기 싫으면 이 문구 유지, 
-        // 완전 빈 화면 원하면 이 블록 통째로 지워도 됨
         <div className="text-center text-sm text-gray-400">
           아직 메시지가 없습니다.
         </div>

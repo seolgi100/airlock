@@ -8,12 +8,14 @@ import RegisterModal from "./components/modal/RegisterModal";
 
 function App() {
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);  
 
-  // 로그인 / 회원가입 모달 상태
+    // 로그인 / 회원가입 모달 상태
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
   return (
+    
     <div className="min-h-[100svh] bg-gray-100">
       {/* 로그인 모달 */}
       {showLogin && (
@@ -23,6 +25,9 @@ function App() {
             setShowLogin(false);
             setShowRegister(true);
           }}
+          onLoginSuccess={(user) => {
+          setCurrentUser(user);
+        }}
         />
       )}
 
@@ -40,7 +45,8 @@ function App() {
       {/* 채팅방 리스트 화면 */}
       {!selectedRoom && (
         <ChatList
-          onSelectRoom={(roomId) => setSelectedRoom(roomId)}
+          currentUser={currentUser} 
+          onSelectRoom={(room) => setSelectedRoom(room)}
           onOpenLogin={() => setShowLogin(true)}
         />
       )}
