@@ -1,7 +1,5 @@
 package com.airlock.backend.config;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -41,23 +39,11 @@ public class SecurityConfig {
                         ).permitAll()
                         
                         // API 허용 추가
-                        .requestMatchers("/api/**").permitAll()
-
-                        .requestMatchers("/api/**").permitAll()
-
                         //그 외 나머지 인증 필요
                         .anyRequest().authenticated()
                 )
 
-                // .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-                .addFilterBefore((request, response, chain) -> {
-                        String path = ((HttpServletRequest) request).getRequestURI();
-                        if (path.startsWith("/api/") || path.startsWith("/ws/")) {
-                                chain.doFilter(request, response); // 필터 통과
-                        } else {
-                                devTokenAuthenticationFilter.doFilter(request, response, chain);
-                        }
-                }, UsernamePasswordAuthenticationFilter.class);
+                 .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
