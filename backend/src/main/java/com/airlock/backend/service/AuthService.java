@@ -218,7 +218,7 @@ public class AuthService {
             String token = tokenService.issueToken(user.getId());
             return new TokenResponse(token);
         } catch (Exception e) {
-            throw new IllegalArgumentException("WEBAUTHN_REGISTER_FAILED: " + e.getMessage());
+            throw new IllegalArgumentException("WEBAUTHN_REGISTER_FAILED");
         }
     }
 
@@ -349,10 +349,8 @@ public class AuthService {
             String token = tokenService.issueToken(user.getId());
             return new TokenResponse(token);
 
-        } catch (IllegalArgumentException e) {
-            throw e;
         } catch (Exception e) {
-            throw new IllegalArgumentException("WEBAUTHN_AUTH_FAILED: " + e.getMessage(), e);
+            throw new IllegalArgumentException("WEBAUTHN_AUTH_FAILED");
         }
     }
 
@@ -363,7 +361,7 @@ public class AuthService {
     public UserResponse me(String bearerToken) {
         //입력 검증
         if (bearerToken == null || bearerToken.isBlank()) {
-            throw new IllegalArgumentException("TOKEN_REQUIRED" + bearerToken);
+            throw new IllegalArgumentException("TOKEN_REQUIRED");
         }
 
         Long userId = tokenService.resolveUserId(bearerToken);
