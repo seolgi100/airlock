@@ -3,9 +3,6 @@ name: Deploy to EC2
 on:
   push:
     branches: ["main"]
-    paths:
-      - "frontend/**"
-      - "backend/**"
   workflow_dispatch:
 
 jobs:
@@ -15,67 +12,40 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
 
-      # 1) 변경 감지
-      - name: Detect frontend changes
-        id: front_changed
-        run: |
-          DIFF=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only)
-          if echo "$DIFF" | grep "^frontend/"; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Detect backend changes
-        id: back_changed
-        run: |
-          DIFF=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only)
-          if echo "$DIFF" | grep "^backend/"; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
-      # 2) 프론트 빌드
+      # 1) 프론트 빌드 (강제)
       - name: Build frontend
-        if: steps.front_changed.outputs.changed == 'true'
         run: |
           cd frontend
-          npm install
+          npm ci
           npm run build
 
-      # 3) 백엔드 빌드
+      # 2) 백엔드 빌드
       - name: Setup Java
-        if: steps.back_changed.outputs.changed == 'true'
         uses: actions/setup-java@v3
         with:
           distribution: "temurin"
           java-version: "17"
 
       - name: Build backend
-        if: steps.back_changed.outputs.changed == 'true'
         run: |
           cd backend
           chmod +x gradlew
           ./gradlew clean build -x test
           cp build/libs/*SNAPSHOT.jar $GITHUB_WORKSPACE/app.jar
 
-      # 4) EC2 업로드
+      # 3) 프론트 업로드
       - name: Upload frontend build
-        if: steps.front_changed.outputs.changed == 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: 43.202.212.164
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "frontend/build/**"
-          target: "/home/ubuntu/airlock/frontend/build/"
+          target: "/home/ubuntu/frontend-build-temp/build/"
 
+      # 4) 백엔드 업로드
       - name: Upload backend JAR
-        if: steps.back_changed.outputs.changed == 'true'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: 43.202.212.164
@@ -85,7 +55,7 @@ jobs:
           target: "/home/ubuntu/"
           overwrite: true
 
-      # 5) EC2 배포 실행
+      # 5) 서버 반영
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -93,29 +63,13 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "🚀 Starting deploy..."
+            sudo rm -rf /var/www/html/*
+            sudo cp -r /home/ubuntu/frontend-build-temp/build/* /var/www/html/
 
-            if [[ "${{ steps.front_changed.outputs.changed }}" == "true" ]]; then
-              echo "📁 Deploying FRONTEND..."
+            sudo chown -R www-data:www-data /var/www/html
+            sudo chmod -R 755 /var/www/html
+            sudo systemctl restart nginx
 
-              sudo rm -rf /var/www/html/*
-              sudo cp -r /home/ubuntu/airlock/frontend/build/* /var/www/html/
-
-              sudo chown -R www-data:www-data /var/www/html
-              sudo chmod -R 755 /var/www/html
-              sudo systemctl restart nginx
-
-              echo "✨ Frontend deployed!"
-            fi
-
-            if [[ "${{ steps.back_changed.outputs.changed }}" == "true" ]]; then
-              echo "⚙ Deploying BACKEND..."
-
-              sudo systemctl stop spring || true
-              sudo mv /home/ubuntu/app.jar /home/ubuntu/backend/app.jar
-              sudo systemctl start spring
-
-              echo "✨ Backend deployed!"
-            fi
-
-            echo "🎉 All tasks completed successfully!"
+            sudo systemctl stop spring || true
+            sudo mv /home/ubuntu/app.jar /home/ubuntu/backend/app.jar
+            sudo systemctl start spring
