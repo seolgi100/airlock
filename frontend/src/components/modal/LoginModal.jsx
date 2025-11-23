@@ -49,7 +49,7 @@ export default function LoginModal({
       // 1) 로그인 옵션 요청: /auth/issue
       const issueBody = {
         displayName: "",         
-        step: "LOGIN_OPTIONS",
+        step: "AUTH_OPTIONS",
         clientChallenge: "",
         credentialId: "",
         clientDataJSON: "",
@@ -110,7 +110,7 @@ export default function LoginModal({
       // 3) 로그인 검증: /auth/verify
       const verifyBody = {
         displayName: "",
-        step: "LOGIN_VERIFY",
+        step: "AUTH_VERIFY",
         clientChallenge: challenge,
 
         credentialId,
@@ -146,6 +146,7 @@ export default function LoginModal({
         console.warn("/auth/me 호출 실패(무시 가능):", meErr);
       }
 
+      
       // 상위(App)로 로그인 성공 알리기
       onLoginSuccess(user);
       onClose();

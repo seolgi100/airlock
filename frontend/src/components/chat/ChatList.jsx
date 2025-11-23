@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import apiClient from "../../api/client";
 import ChatListItem from "./ChatListItem";
 
-function ChatList({ currentUser, onSelectRoom, onOpenLogin }) {
+function ChatList({ currentUser, onSelectRoom, onOpenLogin, onOpenUserInfo }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -49,17 +49,42 @@ const userId = currentUser?.id;
     };
   }, [userId]);
 
+
   return (
     <div className="w-full min-h-[100svh] bg-gray-100">
       <div className="flex items-center justify-between p-4 border-b bg-white">
         <h1 className="text-xl font-bold">채팅 목록</h1>
-        <button
-          type="button"
-          className="text-sm text-gray-600"
-          onClick={onOpenLogin}
-        >
-          로그인
-        </button>
+
+        {/* 오른쪽: 사용자 정보 / 로그인 버튼 */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="
+              text-sm text-gray-600 
+              border border-gray-300 
+              rounded-lg px-3 py-1 
+              hover:bg-gray-50 
+              transition
+            "
+            onClick={onOpenUserInfo}
+          >
+            사용자 정보
+          </button>
+
+          <button
+            type="button"
+            className="
+              text-sm text-gray-600 
+              border border-gray-300 
+              rounded-lg px-3 py-1 
+              hover:bg-gray-50 
+              transition
+            "
+            onClick={onOpenLogin}
+          >
+            로그인
+          </button>
+        </div>
       </div>
 
       <div className="p-4 space-y-2">
@@ -77,7 +102,6 @@ const userId = currentUser?.id;
             onSelect={() => onSelectRoom(room)}
           />
         ))}
-
       </div>
     </div>
   );
