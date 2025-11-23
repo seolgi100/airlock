@@ -7,7 +7,7 @@ function ChatList({ currentUser, onSelectRoom, onOpenLogin, onOpenUserInfo }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
-const userId = currentUser?.id;
+const userId = currentUser?.id ?? null;
 
   useEffect(() => {
     let cancelled = false;
@@ -26,9 +26,10 @@ const userId = currentUser?.id;
         setLoading(true);
         setLoadError(null);
 
+      console.log("GET /api/rooms params =", { userId });
         const res = await apiClient.get("/api/rooms", {
-          params: { userId }, // Swagger curl에 있는 이름 그대로
-        });
+        params: { userId: userId },   // 키 이름 확실하게 지정
+      });
 
         if (cancelled) return;
 

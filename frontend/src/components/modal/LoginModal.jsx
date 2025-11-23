@@ -36,7 +36,7 @@ export default function LoginModal({
   const handleSubmit = async (e) => {
   e.preventDefault();
   setError("");
-  
+  const username = e.target.username?.value.trim();
 
   if (!window.PublicKeyCredential) {
     setError("이 브라우저는 패스키(WebAuthn)를 지원하지 않습니다.");
@@ -48,6 +48,7 @@ export default function LoginModal({
 
       // 1) 로그인 옵션 요청: /auth/issue
       const issueBody = {
+        username,
         displayName: "",         
         step: "AUTH_OPTIONS",
         clientChallenge: "",
@@ -62,25 +63,16 @@ export default function LoginModal({
       const issueRes = await apiClient.post("/auth/issue", issueBody);
       console.log("login issueRes.data:", issueRes.data);
 
-      const { challenge, rpId, credentialIds } = issueRes.data || {};
+      const { challenge, credentialIds } = issueRes.data || {};
       if (!challenge) {
         setError("서버에서 challenge를 받지 못했습니다.");
         setLoading(false);
         return;
       }
-
-      const currentHost = window.location.hostname;
-      const rpIdForWebAuthn =
-        currentHost === "localhost"
-          ? "localhost"
-          : rpId || currentHost;
           
       // 2) WebAuthn 로그인 옵션 구성
       const publicKey = {
         challenge: base64UrlToBuffer(challenge),
-
-        // rpId: 서버에서 내려준 값이 제일 우선
-        rpId: rpIdForWebAuthn,
 
         // 서버가 credentialIds 내려주면 allowCredentials로 제한
         allowCredentials: Array.isArray(credentialIds)
@@ -109,6 +101,7 @@ export default function LoginModal({
 
       // 3) 로그인 검증: /auth/verify
       const verifyBody = {
+        username,
         displayName: "",
         step: "AUTH_VERIFY",
         clientChallenge: challenge,
