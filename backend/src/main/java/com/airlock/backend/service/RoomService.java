@@ -63,8 +63,16 @@ public class RoomService {
     //특정 유저가 속한 모든 방 조회
     @Transactional(readOnly = true)
     public List<RoomResponse> getRoomsForUser(Long userId) {
+        if(userId == null) {
+            return List.of();
+        }
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+                .orElse(null);
+
+        if (user == null) {
+            return List.of();
+        }
 
         return roomRepository.findByUser1OrUser2(user, user)
                 .stream()
