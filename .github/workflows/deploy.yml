@@ -73,3 +73,5 @@ jobs:
             sudo systemctl stop spring || true
             sudo mv /home/ubuntu/app.jar /home/ubuntu/backend/app.jar
             sudo systemctl start spring
+
+# deploy.yml 수정
