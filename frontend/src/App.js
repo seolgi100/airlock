@@ -54,7 +54,8 @@ function App() {
       {/* 채팅방 입장 화면 */}
       {selectedRoom && (
         <ChatContainer
-          roomId={selectedRoom}
+          room={selectedRoom}
+          currentUser={currentUser}
           onBack={() => setSelectedRoom(null)}
         />
       )}
@@ -63,6 +64,3 @@ function App() {
 }
 
 export default App;
-
-
-// 확인용 더미
