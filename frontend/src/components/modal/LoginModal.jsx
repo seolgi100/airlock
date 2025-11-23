@@ -49,7 +49,7 @@ export default function LoginModal({
       // 1) 로그인 옵션 요청: /auth/issue
       const issueBody = {
         displayName: "",         
-        step: "REGISTER_OPTIONS",    // 백엔드와 협의 후 변경
+        step: "LOGIN_OPTIONS",
         clientChallenge: "",
         credentialId: "",
         clientDataJSON: "",
@@ -109,14 +109,13 @@ export default function LoginModal({
 
       // 3) 로그인 검증: /auth/verify
       const verifyBody = {
-        username: "test1", 
         displayName: "",
-        step: "LOGIN_VERIFY",      // ★ 이것도 백엔드가 정한 값으로
+        step: "LOGIN_VERIFY",
         clientChallenge: challenge,
 
         credentialId,
         clientDataJSON,
-        attestationObject: "",     // 로그인이라 attestation 없음
+        attestationObject: "",
         authenticatorData,
         signature,
         userHandle,

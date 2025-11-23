@@ -70,16 +70,14 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
       const issueBody = {
         username,
         displayName,
-        step: "REGISTER_OPTIONS", // 백엔드와 협의 후 변경
+        step: "REGISTER_OPTIONS",
         clientChallenge: "",
         credentialId: "",
         clientDataJSON: "",
         attestationObject: "",
         authenticatorData: "",
         signature: "",
-        userHandle: "",
-        // password는 DTO에 없지만, 서버에서 받아주면 여기서 같이 보낼 수 있음
-        // password,
+        userHandle: ""
       };
 
       const issueRes = await apiClient.post("/auth/issue", issueBody);
