@@ -37,7 +37,10 @@ export default function LoginModal({
   e.preventDefault();
   setError("");
   const username = e.target.username?.value.trim();
-
+  if (!username) {
+    setError("아이디를 입력해 주세요.");
+    return;
+  }
   if (!window.PublicKeyCredential) {
     setError("이 브라우저는 패스키(WebAuthn)를 지원하지 않습니다.");
     return;
@@ -158,6 +161,18 @@ export default function LoginModal({
     <ModalWrapper title="로그인" onClose={onClose}>
       
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="text"
+            name="username"
+            placeholder="아이디 (패스키 등록할 때 썼던 아이디)"
+            className="
+              border border-gray-300 
+              rounded-lg px-4 py-2 
+              focus:ring-2 focus:ring-[#DDE2B2] focus:border-[#DDE2B2]
+              transition
+            "
+            required
+          />
         {/* 로그인 버튼: 채팅 UI 색과 통일 */}
         <button
           type="submit"

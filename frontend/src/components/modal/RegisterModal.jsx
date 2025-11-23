@@ -36,24 +36,10 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
 
     const username = e.target.username.value.trim();
     const displayName = e.target.displayName.value.trim();
-    const password = e.target.password.value;
-    const confirm = e.target.confirm.value;
 
     // 1) 기본 검증 (비밀번호 확인 포함)
     if (!username || !displayName) {
       setError("아이디와 이름을 모두 입력해 주세요.");
-      return;
-    }
-    if (!password || !confirm) {
-      setError("비밀번호와 비밀번호 확인을 입력해 주세요.");
-      return;
-    }
-    if (password.length < 8) {
-      setError("비밀번호는 8자 이상이어야 합니다.");
-      return;
-    }
-    if (password !== confirm) {
-      setError("비밀번호가 일치하지 않습니다.");
       return;
     }
 
@@ -197,34 +183,6 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
           type="text"
           name="displayName"
           placeholder="이름 또는 닉네임"
-          className="
-            border border-gray-300 
-            rounded-lg px-4 py-2 
-            focus:ring-2 focus:ring-[#DDE2B2] focus:border-[#DDE2B2]
-            transition
-          "
-          required
-        />
-
-        {/* 비밀번호 */}
-        <input
-          type="password"
-          name="password"
-          placeholder="비밀번호 (8자 이상)"
-          className="
-            border border-gray-300 
-            rounded-lg px-4 py-2 
-            focus:ring-2 focus:ring-[#DDE2B2] focus:border-[#DDE2B2]
-            transition
-          "
-          required
-        />
-
-        {/* 비밀번호 확인 */}
-        <input
-          type="password"
-          name="confirm"
-          placeholder="비밀번호 확인"
           className="
             border border-gray-300 
             rounded-lg px-4 py-2 
