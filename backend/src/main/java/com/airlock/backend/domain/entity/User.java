@@ -18,8 +18,8 @@ public class User {
     @Getter @Setter @Column(length = 190)
     private String displayName;
 
-    @Setter
-    private Boolean active;
+    @Setter @Column(nullable = false)
+    private Boolean active = true;
 
     @Getter @Column(updatable = false, nullable = false)
     private Instant createdAt = Instant.now();

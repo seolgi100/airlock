@@ -47,7 +47,7 @@ public class AuthController {
 
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserResponse> me(Authentication authentication) {
-        if (authentication == null || authentication.isAuthenticated()) {
+        if (authentication == null || !authentication.isAuthenticated()) {
             //Security 설정이 잘못됐거나 필터가 안 탄 것
             throw new IllegalStateException("UNAUTHENTICATED");
         }

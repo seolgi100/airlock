@@ -15,9 +15,10 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   DevTokenAuthenticationFilter devTokenAuthenticationFilter)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            DevTokenAuthenticationFilter devTokenAuthenticationFilter
+    ) throws Exception {
 
         http
                 //API 서버라 CSRF 비활성화
@@ -37,13 +38,14 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**"
                         ).permitAll()
-                        
-                        // API 허용 추가
+
+                        //방 목록/방 생성 API는 로그인한 유저만 사용(토큰 필요)
+                        .requestMatchers("/api/**").authenticated()
                         //그 외 나머지 인증 필요
                         .anyRequest().authenticated()
                 )
 
-                 .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
