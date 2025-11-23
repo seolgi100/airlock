@@ -25,3 +25,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .setAllowedOriginPatterns("*");
     }
 }
+
+
+// 백엔드 테스트
