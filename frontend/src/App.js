@@ -6,10 +6,36 @@ import ChatList from "./components/chat/ChatList";
 import LoginModal from "./components/modal/LoginModal";
 import RegisterModal from "./components/modal/RegisterModal";
 
+import apiClient from "./api/client";
+
 function App() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);  
 
+    const handleLogout = async () => {
+    const token = localStorage.getItem("accessToken");
+
+    try {
+      if (token) {
+        await apiClient.post(
+          "/auth/logout",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+    } catch (err) {
+      console.error("로그아웃 실패(무시 가능):", err);
+    } finally {
+      // 토큰/유저 정보 비우기
+      localStorage.removeItem("accessToken");
+      setCurrentUser(null);
+      setSelectedRoom(null);
+    }
+  };
     // 로그인 / 회원가입 모달 상태
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
@@ -48,6 +74,7 @@ function App() {
           currentUser={currentUser} 
           onSelectRoom={(room) => setSelectedRoom(room)}
           onOpenLogin={() => setShowLogin(true)}
+          onLogout={handleLogout}          // ★ 추가
         />
       )}
 
