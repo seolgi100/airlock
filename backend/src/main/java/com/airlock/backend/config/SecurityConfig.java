@@ -39,8 +39,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**"
                         ).permitAll()
 
-                        //방 목록/방 생성 API는 로그인한 유저만 사용(토큰 필요)
-                        .requestMatchers("/api/**").authenticated()
+                        //방 목록/방 생성 API 허용
+                        .requestMatchers("/api/**").permitAll()
                         //그 외 나머지 인증 필요
                         .anyRequest().authenticated()
                 )
