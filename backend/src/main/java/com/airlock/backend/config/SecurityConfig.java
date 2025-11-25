@@ -1,7 +1,10 @@
 package com.airlock.backend.config;
 
+import com.airlock.backend.dto.error.ErrorResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -13,6 +16,8 @@ import java.util.List;
 
 @Configuration
 public class SecurityConfig {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -43,6 +48,30 @@ public class SecurityConfig {
                         .requestMatchers("/api/**").permitAll()
                         //그 외 나머지 인증 필요
                         .anyRequest().authenticated()
+                )
+
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authEx) -> {
+
+                            ErrorResponse body = new ErrorResponse(
+                                    HttpStatus.UNAUTHORIZED.value(),
+                                    "UNAUTHORIZED",
+                                    "로그인이 필요합니다."
+                            );
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType("application/json;charset=UTF-8");
+                            objectMapper.writeValue(response.getWriter(), body);
+                        })
+                        .accessDeniedHandler((request, response, deniedEX) -> {
+                            ErrorResponse body = new ErrorResponse(
+                                    HttpStatus.FORBIDDEN.value(),
+                                    "ACCESS_DENIED",
+                                    "해당 요청에 대한 권한이 없습니다."
+                            );
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
+                            response.setContentType("application/json;charset=UTF-8");
+                            objectMapper.writeValue(response.getWriter(), body);
+                        })
                 )
 
                 .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
