@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -123,6 +124,22 @@ public class GlobalExceptionHandler {
 
         ErrorResponse body = new ErrorResponse(status.value(), code, message);
         return ResponseEntity.status(status).body(body);
+    }
+
+    //JSON 파싱 실패
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException e,
+            HttpServletRequest request
+    ) {
+        log.warn("JSON parse error. path={}, message={}", request.getRequestURI(), e.getMessage());
+
+        ErrorResponse body = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "INVALID_JSON",
+                "요청 본문(JSON)을 읽을 수 없습니다."
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     // 예상하지 못한 다른 예외들
