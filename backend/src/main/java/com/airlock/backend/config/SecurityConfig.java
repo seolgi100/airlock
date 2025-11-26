@@ -90,8 +90,7 @@ public class SecurityConfig {
                 "http://localhost:8080",
                 "http://43.202.212.164",
                 "http://43.202.212.164:3000",
-                "http://43.202.212.164:8080",
-                "https://airlock.trycloudflare.com"
+                "http://43.202.212.164:8080"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
