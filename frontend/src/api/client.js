@@ -4,7 +4,7 @@ import axios from "axios";
 const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:8080"
-    : "https://airlock.trycloudflare.com";
+    : "http://43.202.212.164:8080"; 
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
