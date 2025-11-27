@@ -42,7 +42,7 @@ public class SecurityConfig {
                         //방 목록/방 생성 API 허용
                         .requestMatchers("/api/**").permitAll()
                         //그 외 나머지 인증 필요
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
 
                 .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
