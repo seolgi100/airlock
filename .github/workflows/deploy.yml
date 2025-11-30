@@ -17,7 +17,7 @@ jobs:
       - name: Build frontend
         run: |
           cd frontend
-          npm ci
+          npm install
           npm run build
 
       # 2) 백엔드 빌드
