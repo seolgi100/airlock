@@ -42,8 +42,8 @@ public class AuthService {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private static final String RP_ID = "43.202.212.164";
-    private static final String ORIGIN = "http://43.202.212.164:3000";
+    private static final String RP_ID = "mychatapp.mooo.com";
+    private static final String ORIGIN = "https://mychatapp.mooo.com";
 
 
     //발급 시 저장, 검증 시 일치 확인 후 제거(일회성 저장소) / (username, challenge)
