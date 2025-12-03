@@ -26,8 +26,8 @@ const userId = currentUser?.id ?? null;
         setLoading(true);
         setLoadError(null);
 
-      console.log("GET /api/rooms params =", { userId });
-        const res = await apiClient.get("/api/rooms", {
+      console.log("GET /rooms params =", { userId });
+        const res = await apiClient.get("/rooms", {
         params: { userId: userId },   // 키 이름 확실하게 지정
       });
 
