@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         //패스키 발급/검증, 데모 로그인 등은 토큰 없이 허용
                         .requestMatchers("/auth/issue", "/auth/verify", "/auth/demo-login").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
 
                         //WebSocket 엔드포인트 모두 허용
                         .requestMatchers("/ws/**").permitAll()
@@ -63,7 +64,9 @@ public class SecurityConfig {
                 "http://localhost:8080",
                 "http://43.202.212.164",
                 "http://43.202.212.164:3000",
-                "http://43.202.212.164:8080"
+                "http://43.202.212.164:8080",
+                "https://mychatapp.mooo.com",
+                "https://mychatapp.mooo.com/"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
