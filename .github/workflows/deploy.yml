@@ -63,13 +63,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/airlock/frontend
-            
-            npm install
-            npm run build
-
             sudo rm -rf /var/www/html/*
-            sudo cp -r build/* /var/www/html/
+            sudo cp -r /home/ubuntu/frontend-build-temp/build/* /var/www/html/
             sudo systemctl restart nginx
 
             sudo systemctl stop spring || true
