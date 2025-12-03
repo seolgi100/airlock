@@ -63,6 +63,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            sudo rm -rf /home/ubuntu/frontend-build-temp/*
+            
             sudo rm -rf /var/www/html/*
             sudo cp -r /home/ubuntu/frontend-build-temp/build/* /var/www/html/
             sudo systemctl restart nginx
