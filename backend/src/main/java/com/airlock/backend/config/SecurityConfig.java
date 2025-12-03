@@ -65,7 +65,8 @@ public class SecurityConfig {
                 "http://43.202.212.164",
                 "http://43.202.212.164:3000",
                 "http://43.202.212.164:8080",
-                "https://mychatapp.mooo.com"
+                "https://mychatapp.mooo.com",
+                "https://mychatapp.mooo.com/"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
