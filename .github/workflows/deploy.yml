@@ -63,15 +63,15 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo rm -rf /var/www/html/*
-            sudo cp -r /home/ubuntu/frontend-build-temp/build/* /var/www/html/
+            cd /home/ubuntu/airlock/frontend
+            
+            npm install
+            npm run build
 
-            sudo chown -R www-data:www-data /var/www/html
-            sudo chmod -R 755 /var/www/html
+            sudo rm -rf /var/www/html/*
+            sudo cp -r build/* /var/www/html/
             sudo systemctl restart nginx
 
             sudo systemctl stop spring || true
             sudo mv /home/ubuntu/app.jar /home/ubuntu/backend/app.jar
             sudo systemctl start spring
-
-# 복원
