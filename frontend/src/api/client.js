@@ -1,10 +1,7 @@
 // src/api/client.js
 import axios from "axios";
 
-const API_BASE_URL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:8080"
-    : "https://mychatapp.mooo.com"; 
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
