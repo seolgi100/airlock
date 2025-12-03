@@ -1,5 +1,11 @@
 package com.airlock.backend.config;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,6 +16,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.IOException;
 import java.util.List;
 
 @EnableWebSecurity
@@ -48,6 +55,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
 
+                .addFilterBefore(debugFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(devTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -77,6 +85,23 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
 
         return source;
+    }
+
+    @Bean
+    public Filter debugFilter() {
+        return new Filter() {
+
+            @Override
+            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+                    throws IOException, ServletException {
+
+                HttpServletRequest req = (HttpServletRequest) request;
+                System.out.println("💡 Received path = " + req.getRequestURI());
+                System.out.println("💡 Full URL      = " + req.getRequestURL());
+
+                chain.doFilter(request, response);
+            }
+        };
     }
 
 }
