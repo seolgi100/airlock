@@ -4,10 +4,7 @@ import ChatHeader from "./ChatHeader";
 import ChatRoom from "./ChatRoom";
 import ChatInput from "./ChatInput";
 
-const WS_URL =
-  window.location.hostname === "localhost"
-    ? "ws://localhost:8080/ws"
-    : "wss://mychatapp.mooo.com/ws";
+const WS_URL = process.env.REACT_APP_WS_URL;
 
 function ChatContainer({ room, currentUser, onBack }) {
 
