@@ -4,7 +4,15 @@ import ChatHeader from "./ChatHeader";
 import ChatRoom from "./ChatRoom";
 import ChatInput from "./ChatInput";
 
-const WS_URL = process.env.REACT_APP_WS_URL;
+const API_BASE = process.env.REACT_APP_API_URL;  
+
+let WS_URL;
+if (API_BASE.startsWith("https://")) {
+  WS_URL = API_BASE.replace("https://", "wss://") + "/ws";
+} else if (API_BASE.startsWith("http://")) {
+  WS_URL = API_BASE.replace("http://", "ws://") + "/ws";
+}
+
 
 function ChatContainer({ room, currentUser, onBack }) {
 
