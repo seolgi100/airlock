@@ -20,7 +20,3 @@ webrtc:
     username: "<turn_username>"
     password: "<turn_password>"
     port: 3478
-
-passkey:
-  rpId: "43.202.212.164"
-  origin: "http://43.202.212.164:3000"
