@@ -1,6 +1,5 @@
 package com.airlock.backend.service;
 
-import com.airlock.backend.config.PasskeyProperties;
 import com.airlock.backend.domain.entity.PasskeyCredential;
 import com.airlock.backend.domain.repository.PasskeyCredentialRepository;
 import com.airlock.backend.dto.auth.ChallengeResponse;
@@ -38,7 +37,6 @@ public class AuthService {
     private final TokenService tokenService;
     private final PasskeyCredentialRepository passkeyCredentialRepository;
     private final WebAuthnManager webAuthnManager;
-    private final PasskeyProperties passkeyProperties = new PasskeyProperties();
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
