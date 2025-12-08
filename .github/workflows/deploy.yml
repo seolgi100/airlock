@@ -13,14 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 1) 프론트 빌드 (강제)
+      # --- Frontend Build ---
       - name: Build frontend
         run: |
           cd frontend
           npm install
           npm run build
 
-      # 2) 백엔드 빌드
+      # --- Backend Build ---
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
@@ -34,17 +34,29 @@ jobs:
           ./gradlew clean build -x test
           cp build/libs/*SNAPSHOT.jar $GITHUB_WORKSPACE/app.jar
 
-      # 3) 프론트 업로드
+      # --- Clean temp folder BEFORE upload ---
+      - name: Pre-clean frontend temp folder on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: 43.202.212.164
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo mkdir -p /home/ubuntu/frontend-build-temp/
+            sudo rm -rf /home/ubuntu/frontend-build-temp/*
+
+      # --- Upload Frontend ---
       - name: Upload frontend build
         uses: appleboy/scp-action@v0.1.7
         with:
           host: 43.202.212.164
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "frontend/build/*"
-          target: "/home/ubuntu/frontend-build-temp/build/"
+          source: "frontend/build/**"
+          target: "/home/ubuntu/frontend-build-temp/"
+          overwrite: true
 
-      # 4) 백엔드 업로드
+      # --- Upload Backend JAR ---
       - name: Upload backend JAR
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -55,7 +67,7 @@ jobs:
           target: "/home/ubuntu/"
           overwrite: true
 
-      # 5) 서버 반영
+      # --- Apply Deployment ---
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -63,12 +75,21 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo rm -rf /home/ubuntu/frontend-build-temp/*
-            
+            echo "📁 Ensure backend folder exists"
+            sudo mkdir -p /home/ubuntu/backend/
+
+            echo "🧹 Clear old frontend files"
             sudo rm -rf /var/www/html/*
-            sudo cp -r /home/ubuntu/frontend-build-temp/build/* /var/www/html/
+
+            echo "📦 Copy new frontend build"
+            sudo cp -r /home/ubuntu/frontend-build-temp/* /var/www/html/
+
+            echo "🔄 Restarting Nginx"
             sudo systemctl restart nginx
 
+            echo "🚀 Deploying Backend"
             sudo systemctl stop spring || true
-            sudo mv /home/ubuntu/app.jar /home/ubuntu/backend/app.jar
+            sudo mv -f /home/ubuntu/app.jar /home/ubuntu/backend/app.jar
             sudo systemctl start spring
+
+            echo "✅ Deployment Completed Successfully!"
