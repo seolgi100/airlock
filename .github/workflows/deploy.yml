@@ -52,8 +52,9 @@ jobs:
           host: 43.202.212.164
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "frontend/build/**"
+          source: "./frontend/build/**"
           target: "/home/ubuntu/frontend-build-temp/"
+          strip_components: 2
           overwrite: true
 
       # --- Upload Backend JAR ---
