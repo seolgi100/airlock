@@ -58,6 +58,16 @@ public class AuthController {
         return ResponseEntity.ok(res);
     }
 
+    @GetMapping("/validate")
+    public ResponseEntity<UserResponse> validateToken(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization
+    ) {
+        String token = extractBearer(authorization);
+        UserResponse user = authService.me(token); //me 메소드에서 토큰 검증
+
+        return ResponseEntity.ok(user);
+    }
+
     //로그아웃
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
