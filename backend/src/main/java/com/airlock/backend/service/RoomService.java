@@ -21,21 +21,19 @@ public class RoomService {
 
     //두 유저 사이에 방 하나만 유지(있으면 재사용, 없으면 생성)
     @Transactional
-    public RoomResponse createOrGetRoom(RoomCreateRequest request) {
-        Long userId1 = request.getUserId1();
-        Long userId2 = request.getUserId2();
+    public RoomResponse createOrGetRoom(Long meId, Long targetId) {
 
-        if(userId1 == null || userId2 == null) {
+        if(meId == null || targetId == null) {
             throw new IllegalArgumentException("USER_IDS_REQUIRED");
         }
-        if(userId1.equals(userId2)) {
+        if(meId.equals(targetId)) {
             throw new IllegalArgumentException("CANNOT_CREATE_ROOM_WITH_SAME_USER");
         }
 
         //실제 User 엔티티 조회
-        User u1 = userRepository.findById(userId1)
+        User u1 = userRepository.findById(meId)
                 .orElseThrow(() -> new IllegalArgumentException("USER1_NOT_FOUND"));
-        User u2 = userRepository.findById(userId2)
+        User u2 = userRepository.findById(targetId)
                 .orElseThrow(() -> new IllegalArgumentException("USER2_NOT_FOUND"));
 
         //항상 작은 쪽이 user1, 큰 쪽은 user2로 저장

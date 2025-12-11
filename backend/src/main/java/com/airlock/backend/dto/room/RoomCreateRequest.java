@@ -5,6 +5,5 @@ import lombok.Setter;
 
 @Getter @Setter
 public class RoomCreateRequest {
-    private Long userId1;
-    private Long userId2;
+    private String targetUserName;
 }

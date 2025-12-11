@@ -21,8 +21,20 @@ public class RoomController {
 
     // 1) 방 생성
     @PostMapping
-    public RoomResponse createRoom(@RequestBody RoomCreateRequest request) {
-        return roomService.createOrGetRoom(request);
+    public RoomResponse createRoom(
+            @RequestBody RoomCreateRequest request,
+            Authentication authentication
+    ) {
+        String username = authentication.getPrincipal().toString();
+        User me = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("ME_NOT_FOUND"));
+
+        String targetUserName = request.getTargetUserName();
+
+        User target = userRepository.findByUsername(targetUserName)
+                .orElseThrow(() -> new IllegalArgumentException("TARGET_NOT_FOUND"));
+
+        return roomService.createOrGetRoom(me.getId(), target.getId());
     }
 
     // 2) 방 단일 조회
