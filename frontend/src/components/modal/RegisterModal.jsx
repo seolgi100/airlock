@@ -124,6 +124,7 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
         displayName,
         step: "REGISTER_VERIFY",
 
+        clientChallenge: challenge,
         credentialId: bufferToBase64Url(credential.rawId),
         clientDataJSON: bufferToBase64Url(response.clientDataJSON),
         attestationObject: bufferToBase64Url(response.attestationObject),
