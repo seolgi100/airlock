@@ -139,12 +139,12 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
 
       console.log("verifyRes.data:", verifyRes.data);
 
-      const { accessToken } = verifyRes.data || {};
+      // const { accessToken } = verifyRes.data || {};
 
-      if (accessToken) {
-        // JWT 저장 (이제부터 인증 필요한 API 호출에 사용)
-        localStorage.setItem("accessToken", accessToken);
-      }
+      // if (accessToken) {
+      //   // JWT 저장 (이제부터 인증 필요한 API 호출에 사용)
+      //   localStorage.setItem("accessToken", accessToken);
+      // }
 
       alert("회원가입이 완료되었습니다.");
       onClose();
