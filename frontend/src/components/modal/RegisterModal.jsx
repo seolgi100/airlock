@@ -113,26 +113,20 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
         throw new Error("자격 증명 생성에 실패했습니다.");
       }
 
-      const { id: credentialId, response } = credential;
-      const clientDataJSON = bufferToBase64Url(response.clientDataJSON);
-      const attestationObject = bufferToBase64Url(response.attestationObject);
-
+      // const { id: credentialId, response } = credential;
+      // const clientDataJSON = bufferToBase64Url(response.clientDataJSON);
+      // const attestationObject = bufferToBase64Url(response.attestationObject);
+      const { response } = credential;
+      
       // 5) /auth/verify 로 검증 요청 (스웨거 DTO에 맞춰서)
       const verifyBody = {
         username,
         displayName,
         step: "REGISTER_VERIFY",
-        clientChallenge: challenge, // 서버가 준 challenge 다시 보냄
 
-        credentialId,
-        clientDataJSON,
-        attestationObject,
-
-        // 등록 단계라서 assertion 쪽 값은 일단 비워 둠
-        authenticatorData: "",
-        signature: "",
-        userHandle: "",
-
+        credentialId: bufferToBase64Url(credential.rawId),
+        clientDataJSON: bufferToBase64Url(response.clientDataJSON),
+        attestationObject: bufferToBase64Url(response.attestationObject),
       };
 
       const verifyRes = await apiClient.post("/auth/verify", verifyBody);
