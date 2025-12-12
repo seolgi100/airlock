@@ -119,16 +119,16 @@ export default function RegisterModal({ onClose, onSwitchToLogin = () => {} }) {
       const { response } = credential;
       
       // 5) /auth/verify 로 검증 요청 (스웨거 DTO에 맞춰서)
-      const verifyBody = {
-        username,
-        displayName,
-        step: "REGISTER_VERIFY",
+        const verifyBody = {
+          username,
+          displayName,
+          step: "REGISTER_VERIFY",
 
-        clientChallenge: challenge,
-        credentialId: bufferToBase64Url(credential.rawId),
-        clientDataJSON: bufferToBase64Url(response.clientDataJSON),
-        attestationObject: bufferToBase64Url(response.attestationObject),
-      };
+          clientChallenge: challenge,
+          credentialId: bufferToBase64Url(credential.rawId),
+          clientDataJSON: bufferToBase64Url(response.clientDataJSON),
+          attestationObject: bufferToBase64Url(response.attestationObject),
+        };
 
       const verifyRes = await apiClient.post("/auth/verify", verifyBody);
 

@@ -108,14 +108,13 @@ export default function LoginModal({
       const verifyBody = {
         username,
         step: "AUTH_VERIFY",
-
+        clientChallenge: challenge,
         credentialId,
         clientDataJSON,
         authenticatorData,
         signature,
         userHandle,
       };
-      
       const verifyRes = await apiClient.post("/auth/verify", verifyBody);
       console.log("login verifyRes.data:", verifyRes.data);
 
