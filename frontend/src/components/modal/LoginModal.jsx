@@ -94,7 +94,9 @@ export default function LoginModal({
         throw new Error("자격 증명 가져오기에 실패했습니다.");
       }
 
-      const { id: credentialId, response } = assertion;
+      const { response } = assertion;
+
+      const credentialId = bufferToBase64Url(assertion.rawId);
       const clientDataJSON = bufferToBase64Url(response.clientDataJSON);
       const authenticatorData = bufferToBase64Url(response.authenticatorData);
       const signature = bufferToBase64Url(response.signature);
@@ -105,18 +107,15 @@ export default function LoginModal({
       // 3) 로그인 검증: /auth/verify
       const verifyBody = {
         username,
-        displayName: "",
         step: "AUTH_VERIFY",
-        clientChallenge: challenge,
 
         credentialId,
         clientDataJSON,
-        attestationObject: "",
         authenticatorData,
         signature,
         userHandle,
       };
-
+      
       const verifyRes = await apiClient.post("/auth/verify", verifyBody);
       console.log("login verifyRes.data:", verifyRes.data);
 
