@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ChatContainer from "./components/chat/ChatContainer";
 import ChatList from "./components/chat/ChatList";
 
@@ -11,6 +11,24 @@ import apiClient from "./api/client";
 function App() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);  
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) return;
+
+    apiClient
+      .get("/auth/validate")
+      .then((res) => {
+        // res.data = { id, username, displayName }
+        setCurrentUser(res.data);
+      })
+      .catch((err) => {
+        console.error("토큰 검증 실패:", err);
+        localStorage.removeItem("accessToken");
+        setCurrentUser(null);
+      });
+  }, []);
 
     const handleLogout = async () => {
     const token = localStorage.getItem("accessToken");
