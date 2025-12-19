@@ -9,7 +9,7 @@ export default function ChatRoomCreate() {
   const createRoom = async () => {
     const u = username.trim();
     if (!u) return;
-    await apiClient.post("/rooms", { targetUsername: u });
+    await apiClient.post("/api/rooms", { targetUsername: u });
     setUsername("");
     setOpen(false);
   };
