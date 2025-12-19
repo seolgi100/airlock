@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback  } from "react";
 import apiClient from "../../api/client";
 import ChatListItem from "./ChatListItem";
+import ChatRoomCreate from "./ChatRoomCreate";
 
 function ChatList({ currentUser, onSelectRoom, onOpenLogin, onLogout })  {
   const [rooms, setRooms] = useState([]);
@@ -9,11 +10,7 @@ function ChatList({ currentUser, onSelectRoom, onOpenLogin, onLogout })  {
 
 const userId = currentUser?.id ?? null;
 
-  useEffect(() => {
-    let cancelled = false;
-
-     // userId 없으면(로그인 안 된 상태) API 호출 안 함
-
+const fetchRooms = useCallback(async () => {
     if (!userId) {
       setRooms([]);
       setLoading(false);
@@ -21,35 +18,29 @@ const userId = currentUser?.id ?? null;
       return;
     }
 
-    async function fetchRooms() {
-      try {
-        setLoading(true);
-        setLoadError(null);
+    try {
+      setLoading(true);
+      setLoadError(null);
 
       console.log("GET /api/rooms params =", { userId });
-        const res = await apiClient.get("/api/rooms", {
-        params: { userId: userId },   // 키 이름 확실하게 지정
+      const res = await apiClient.get("/api/rooms", {
+        params: { userId },
       });
 
-        if (cancelled) return;
-
-        const data = Array.isArray(res.data) ? res.data : [];
-        setRooms(data);
-      } catch (err) {
-        if (cancelled) return;
-        console.error("방 목록 불러오기 실패:", err);
-        setLoadError("채팅방 목록을 불러오지 못했습니다.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      const data = Array.isArray(res.data) ? res.data : [];
+      setRooms(data);
+    } catch (err) {
+      console.error("방 목록 불러오기 실패:", err);
+      setLoadError("채팅방 목록을 불러오지 못했습니다.");
+    } finally {
+      setLoading(false);
     }
-
-    fetchRooms();
-    return () => {
-      cancelled = true;
-    };
   }, [userId]);
 
+
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
 
   return (
     <div className="w-full min-h-[100svh] bg-gray-100">
@@ -110,6 +101,10 @@ const userId = currentUser?.id ?? null;
           />
         ))}
       </div>
+        <ChatRoomCreate
+        onCreated={fetchRooms}
+        onRequireLogin={!currentUser ? onOpenLogin : null}
+      />
     </div>
   );
 }
