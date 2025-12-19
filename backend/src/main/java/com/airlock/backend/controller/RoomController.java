@@ -31,6 +31,8 @@ public class RoomController {
 
         String targetUserName = request.getTargetUserName();
 
+        System.out.println("DEBUG: targetUserName = " + targetUserName);
+
         User target = userRepository.findByUsername(targetUserName)
                 .orElseThrow(() -> new IllegalArgumentException("TARGET_NOT_FOUND"));
 
