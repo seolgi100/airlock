@@ -1,0 +1,18 @@
+@'
+# IntelliJ
+.idea/
+*.iml
+
+# Gradle / Build
+.gradle/
+build/
+out/
+
+# 로컬 설정
+backend/src/main/resources/application.yml
+backend/src/main/resources/application-prod.yml
+
+# 분석 문서
+*-analysis.md
+webauthn-history.md
+'@ | Set-Content -Encoding utf8 .gitignore
